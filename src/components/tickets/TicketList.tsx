@@ -22,7 +22,8 @@ import {
   Trash2, 
   ArrowUpRight, 
   ArrowDownRight, 
-  Search 
+  Search,
+  Loader2
 } from 'lucide-react';
 import { 
   Dialog,
@@ -55,56 +56,92 @@ interface TicketListProps {
   tickets: Ticket[];
   onUpdateTicket: (ticket: Ticket) => void;
   onDeleteTicket: (id: string) => void;
+  isLoading?: boolean;
 }
 
-const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps) => {
+const TicketList = ({ 
+  tickets, 
+  onUpdateTicket, 
+  onDeleteTicket, 
+  isLoading = false 
+}: TicketListProps) => {
   const [search, setSearch] = useState('');
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+
+  // Combined loading state
+  const isProcessing = isLoading || localLoading;
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.eventName.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleEdit = useCallback((ticket: Ticket) => {
+    if (isProcessing) return;
     setEditingTicket(ticket);
     setIsEditDialogOpen(true);
     debugLog('Editing ticket', ticket);
-  }, []);
+  }, [isProcessing]);
 
   const handleDelete = useCallback((id: string) => {
+    if (isProcessing) return;
     setDeletingTicketId(id);
     setIsDeleteDialogOpen(true);
     debugLog('Deleting ticket', { id });
-  }, []);
+  }, [isProcessing]);
 
   const handleEditCancel = useCallback(() => {
+    if (isProcessing) return;
     setEditingTicket(null);
     setIsEditDialogOpen(false);
-  }, []);
+  }, [isProcessing]);
 
   const handleDeleteCancel = useCallback(() => {
+    if (isProcessing) return;
     setDeletingTicketId(null);
     setIsDeleteDialogOpen(false);
-  }, []);
+  }, [isProcessing]);
 
   const confirmDelete = useCallback(() => {
-    if (deletingTicketId) {
+    if (!deletingTicketId || isProcessing) return;
+    
+    setLocalLoading(true);
+    try {
       onDeleteTicket(deletingTicketId);
+      // Clean up local state
       setDeletingTicketId(null);
       setIsDeleteDialogOpen(false);
+    } catch (error) {
+      debugLog('Error in TicketList confirmDelete', error);
+    } finally {
+      // Delay setting loading to false to ensure UI updates properly
+      setTimeout(() => {
+        setLocalLoading(false);
+      }, 100);
     }
-  }, [deletingTicketId, onDeleteTicket]);
+  }, [deletingTicketId, isProcessing, onDeleteTicket]);
 
   const handleSubmitEdit = useCallback((data: Ticket) => {
-    if (editingTicket) {
+    if (!editingTicket || isProcessing) return;
+    
+    setLocalLoading(true);
+    try {
       onUpdateTicket({ ...data, id: editingTicket.id });
+      // Clean up local state
       setEditingTicket(null);
       setIsEditDialogOpen(false);
+    } catch (error) {
+      debugLog('Error in TicketList handleSubmitEdit', error);
+    } finally {
+      // Delay setting loading to false to ensure UI updates properly
+      setTimeout(() => {
+        setLocalLoading(false);
+      }, 100);
     }
-  }, [editingTicket, onUpdateTicket]);
+  }, [editingTicket, isProcessing, onUpdateTicket]);
 
   return (
     <>
@@ -116,8 +153,15 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-8"
+            disabled={isProcessing}
           />
         </div>
+        {isProcessing && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Elaborazione in corso...
+          </div>
+        )}
       </div>
 
       <div className="rounded-md border">
@@ -138,7 +182,9 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
             {filteredTickets.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-24 text-center">
-                  Nessun biglietto trovato.
+                  {isProcessing 
+                    ? 'Caricamento biglietti...' 
+                    : 'Nessun biglietto trovato.'}
                 </TableCell>
               </TableRow>
             ) : (
@@ -175,19 +221,27 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" disabled={isProcessing}>
+                            {isProcessing ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <MoreHorizontal className="h-4 w-4" />
+                            )}
                             <span className="sr-only">Apri menu</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(ticket)}>
+                          <DropdownMenuItem 
+                            onClick={() => handleEdit(ticket)}
+                            disabled={isProcessing}
+                          >
                             <PenLine className="mr-2 h-4 w-4" />
                             Modifica
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleDelete(ticket.id)}
                             className="text-destructive focus:text-destructive"
+                            disabled={isProcessing}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Elimina
@@ -204,7 +258,12 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
       </div>
 
       {/* Modal di modifica biglietto */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <Dialog 
+        open={isEditDialogOpen} 
+        onOpenChange={(open) => {
+          if (!isProcessing) setIsEditDialogOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Modifica Biglietto</DialogTitle>
@@ -214,13 +273,19 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
               initialData={editingTicket}
               onSubmit={handleSubmitEdit}
               onCancel={handleEditCancel}
+              isLoading={isProcessing}
             />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Alert dialog per conferma eliminazione */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog 
+        open={isDeleteDialogOpen} 
+        onOpenChange={(open) => {
+          if (!isProcessing) setIsDeleteDialogOpen(open);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Sei sicuro di voler eliminare questo biglietto?</AlertDialogTitle>
@@ -229,9 +294,25 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDeleteCancel}>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive">
-              Elimina
+            <AlertDialogCancel 
+              onClick={handleDeleteCancel}
+              disabled={isProcessing}
+            >
+              Annulla
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete} 
+              className="bg-destructive"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminazione...
+                </>
+              ) : (
+                'Elimina'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

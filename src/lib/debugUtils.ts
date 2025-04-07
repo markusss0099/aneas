@@ -40,10 +40,11 @@ export const toggleDebug = (): boolean => {
  */
 export const debugLog = (message: string, data?: any): void => {
   if (isDebugEnabled()) {
+    const timestamp = new Date().toISOString();
     if (data) {
-      console.log(`[DEBUG] ${message}`, data);
+      console.log(`[DEBUG ${timestamp}] ${message}`, data);
     } else {
-      console.log(`[DEBUG] ${message}`);
+      console.log(`[DEBUG ${timestamp}] ${message}`);
     }
   }
 };
@@ -53,7 +54,8 @@ export const debugLog = (message: string, data?: any): void => {
  */
 export const debugState = <T>(stateName: string, oldValue: T, newValue: T): void => {
   if (isDebugEnabled()) {
-    console.log(`[DEBUG STATE] ${stateName} changed:`, {
+    const timestamp = new Date().toISOString();
+    console.log(`[DEBUG STATE ${timestamp}] ${stateName} changed:`, {
       from: oldValue,
       to: newValue,
       diff: JSON.stringify(oldValue) !== JSON.stringify(newValue)
@@ -66,7 +68,43 @@ export const debugState = <T>(stateName: string, oldValue: T, newValue: T): void
  */
 export const debugAction = (actionType: string, details?: any): void => {
   if (isDebugEnabled()) {
-    console.log(`[DEBUG ACTION] ${actionType}`, details || {});
+    const timestamp = new Date().toISOString();
+    console.log(`[DEBUG ACTION ${timestamp}] ${actionType}`, details || {});
+  }
+};
+
+/**
+ * Log component lifecycle events
+ */
+export const debugLifecycle = (componentName: string, lifecycle: 'mount' | 'update' | 'unmount', details?: any): void => {
+  if (isDebugEnabled()) {
+    const timestamp = new Date().toISOString();
+    console.log(`[DEBUG LIFECYCLE ${timestamp}] ${componentName} ${lifecycle}`, details || {});
+  }
+};
+
+/**
+ * Log events related to user operations (click, submit, etc)
+ */
+export const debugUserAction = (action: string, details?: any): void => {
+  if (isDebugEnabled()) {
+    const timestamp = new Date().toISOString();
+    console.log(`[DEBUG USER ACTION ${timestamp}] ${action}`, details || {});
+  }
+};
+
+/**
+ * Log specific errors with more details
+ */
+export const debugError = (message: string, error: any): void => {
+  if (isDebugEnabled()) {
+    const timestamp = new Date().toISOString();
+    console.error(`[DEBUG ERROR ${timestamp}] ${message}`, error);
+    
+    // Log stack trace if available
+    if (error && error.stack) {
+      console.error(`[DEBUG ERROR STACK ${timestamp}]`, error.stack);
+    }
   }
 };
 
