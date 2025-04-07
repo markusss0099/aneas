@@ -61,7 +61,15 @@ const ServiceForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Ser
   });
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data);
+    // Ensure all required fields are passed as non-optional
+    const serviceData: Omit<Service, 'id'> = {
+      name: data.name,
+      revenue: data.revenue,
+      date: data.date,
+      description: data.description,
+    };
+    
+    onSubmit(serviceData);
     toast({
       title: initialData ? "Servizio aggiornato" : "Servizio aggiunto",
       description: `${data.name} è stato ${initialData ? 'aggiornato' : 'aggiunto'} con successo.`,
