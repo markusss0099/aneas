@@ -1,6 +1,8 @@
 
 import { Service } from '../types';
 import { debugLog } from '@/lib/debugUtils';
+import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear } from 'date-fns';
+import { it } from 'date-fns/locale';
 
 // Chiave per il localStorage
 const STORAGE_KEY = 'cashflow-services';
@@ -79,10 +81,6 @@ export const getTotalServices = (): number => {
 export const getServiceRevenueByPeriod = (period: 'week' | 'month' | 'quarter' | 'year'): Record<string, number> => {
   const services = getServices();
   const revenueByPeriod: Record<string, number> = {};
-  
-  // Importa le stesse funzioni usate in ticketService per la coerenza
-  const { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } = require('date-fns');
-  const { it } = require('date-fns/locale');
   
   // Funzioni di raggruppamento per periodo
   const getPeriodStart = (date: Date): Date => {

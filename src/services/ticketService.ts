@@ -1,3 +1,4 @@
+
 import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -161,7 +162,8 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
         period: purchasePeriod, 
         invested: 0, 
         revenue: 0, 
-        profit: 0 
+        profit: 0,
+        serviceRevenue: 0 
       };
     }
     
@@ -170,7 +172,8 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
         period: paymentPeriod, 
         invested: 0, 
         revenue: 0, 
-        profit: 0 
+        profit: 0,
+        serviceRevenue: 0 
       };
     }
     
