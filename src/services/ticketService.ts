@@ -2,6 +2,7 @@ import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { debugLog } from '@/lib/debugUtils';
+import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from './serviceService';
 
 // Simuliamo la persistenza dei dati con localStorage
 const STORAGE_KEY = 'cashflow-tickets';
@@ -101,12 +102,17 @@ export const getFinancialSummary = (): FinancialSummary => {
   const totalProfit = totalRevenue - totalInvested;
   const profitMargin = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
   
+  const totalServices = getServices().length;
+  const totalServiceRevenue = getTotalServiceRevenue();
+  
   const summary = {
     totalTickets,
     totalInvested,
     totalRevenue,
     totalProfit,
     profitMargin,
+    totalServices,
+    totalServiceRevenue,
   };
   
   debugLog('Generated financial summary', summary);
@@ -118,7 +124,6 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
   const tickets = getTickets();
   const result: Record<string, CashflowByPeriod> = {};
   
-  // Funzioni di raggruppamento per periodo
   const getPeriodStart = (date: Date): Date => {
     switch(period) {
       case 'week': return startOfWeek(date, { locale: it });
@@ -146,14 +151,11 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
     }
   };
   
-  // Processa i dati dei biglietti
   tickets.forEach(ticket => {
-    // Calcola i periodi per ogni data importante
     const purchasePeriod = formatPeriod(getPeriodStart(ticket.purchaseDate));
     const eventPeriod = formatPeriod(getPeriodStart(ticket.eventDate));
     const paymentPeriod = formatPeriod(getPeriodStart(ticket.expectedPaymentDate));
     
-    // Inizializza periodi se non esistono
     if (!result[purchasePeriod]) {
       result[purchasePeriod] = { 
         period: purchasePeriod, 
@@ -172,14 +174,27 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
       };
     }
     
-    // Aggiorna investimenti nel periodo di acquisto
     result[purchasePeriod].invested += calculateTicketTotalCost(ticket);
     
-    // Aggiorna ricavi e profitti nel periodo di pagamento atteso
     result[paymentPeriod].revenue += calculateTicketTotalRevenue(ticket);
     result[paymentPeriod].profit += calculateTicketProfit(ticket);
   });
   
-  // Converti l'oggetto in array e ordina per periodo
+  const serviceRevenueByPeriod = getServiceRevenueByPeriod(period);
+  
+  Object.entries(serviceRevenueByPeriod).forEach(([periodKey, revenue]) => {
+    if (!result[periodKey]) {
+      result[periodKey] = { 
+        period: periodKey, 
+        invested: 0, 
+        revenue: 0, 
+        profit: 0,
+        serviceRevenue: 0
+      };
+    }
+    
+    result[periodKey].serviceRevenue = revenue;
+  });
+  
   return Object.values(result).sort((a, b) => a.period.localeCompare(b.period));
 };

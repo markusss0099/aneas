@@ -12,12 +12,22 @@ export interface Ticket {
   notes?: string;
 }
 
+export interface Service {
+  id: string;
+  name: string;
+  revenue: number;
+  date: Date;
+  description?: string;
+}
+
 export interface FinancialSummary {
   totalTickets: number;
   totalInvested: number;
   totalRevenue: number;
   totalProfit: number;
   profitMargin: number;
+  totalServices: number;
+  totalServiceRevenue: number;
 }
 
 export interface CashflowByPeriod {
@@ -25,6 +35,7 @@ export interface CashflowByPeriod {
   invested: number;
   revenue: number;
   profit: number;
+  serviceRevenue: number;
 }
 
 export type Period = 'week' | 'month' | 'quarter' | 'year';

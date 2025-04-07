@@ -29,6 +29,7 @@ import {
 } from '@/services/ticketService';
 import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
 import { Period } from '@/types';
+import ServiceSummarySection from '@/components/summary/ServiceSummarySection';
 
 const SummaryPage = () => {
   const [period, setPeriod] = useState<Period>('month');
@@ -74,8 +75,8 @@ const SummaryPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Totale Biglietti
@@ -89,7 +90,7 @@ const SummaryPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Investimento Totale
@@ -105,7 +106,7 @@ const SummaryPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Ricavi Previsti
@@ -121,7 +122,7 @@ const SummaryPage = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Profitto Netto
@@ -142,6 +143,39 @@ const SummaryPage = () => {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Margine: {summary.profitMargin.toFixed(2)}%
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Totale Servizi
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{summary.totalServices}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Servizi registrati
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Ricavi Servizi
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <ArrowUpRight className="mr-1 h-4 w-4 text-success" />
+              <span className="text-2xl font-bold text-success">
+                {formatCurrency(summary.totalServiceRevenue)}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Guadagni da servizi
             </p>
           </CardContent>
         </Card>
@@ -220,8 +254,9 @@ const SummaryPage = () => {
       </div>
 
       <Tabs defaultValue="recent-tickets">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="recent-tickets">Eventi Recenti</TabsTrigger>
+          <TabsTrigger value="services">Servizi Pulling</TabsTrigger>
           <TabsTrigger value="cashflow">Cashflow Recente</TabsTrigger>
         </TabsList>
         
@@ -284,6 +319,10 @@ const SummaryPage = () => {
           </Card>
         </TabsContent>
         
+        <TabsContent value="services" className="space-y-4">
+          <ServiceSummarySection />
+        </TabsContent>
+        
         <TabsContent value="cashflow" className="space-y-4">
           <Card>
             <CardHeader>
@@ -298,14 +337,15 @@ const SummaryPage = () => {
                   <TableRow>
                     <TableHead>Periodo</TableHead>
                     <TableHead>Investimento</TableHead>
-                    <TableHead>Ricavi</TableHead>
+                    <TableHead>Ricavi Biglietti</TableHead>
+                    <TableHead>Ricavi Servizi</TableHead>
                     <TableHead>Profitto</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentCashflow.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center">
+                      <TableCell colSpan={5} className="h-24 text-center">
                         Nessun dato di cashflow disponibile.
                       </TableCell>
                     </TableRow>
@@ -315,6 +355,7 @@ const SummaryPage = () => {
                         <TableCell className="font-medium">{flow.period}</TableCell>
                         <TableCell>{formatCurrency(flow.invested)}</TableCell>
                         <TableCell>{formatCurrency(flow.revenue)}</TableCell>
+                        <TableCell>{formatCurrency(flow.serviceRevenue)}</TableCell>
                         <TableCell>
                           <div className="flex items-center">
                             {flow.profit >= 0 ? (

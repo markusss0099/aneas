@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { getCashflowByPeriod, getFinancialSummary } from '@/services/ticketService';
 import { CashflowByPeriod, Period } from '@/types';
+import ServiceAnalysis from '@/components/analysis/ServiceAnalysis';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -47,13 +48,16 @@ const AnalysisPage = () => {
 
   // Calcoliamo il cashflow cumulativo
   const cumulativeData = cashflowData.reduce((acc: CashflowByPeriod[], current) => {
-    const prevCumulative = acc.length > 0 ? acc[acc.length - 1] : { invested: 0, revenue: 0, profit: 0 };
+    const prevCumulative = acc.length > 0 ? acc[acc.length - 1] : { 
+      invested: 0, revenue: 0, profit: 0, serviceRevenue: 0 
+    };
     
     const newCumulative = {
       period: current.period,
       invested: prevCumulative.invested + current.invested,
       revenue: prevCumulative.revenue + current.revenue,
       profit: prevCumulative.profit + current.profit,
+      serviceRevenue: prevCumulative.serviceRevenue + current.serviceRevenue,
     };
     
     return [...acc, newCumulative];
@@ -98,42 +102,14 @@ const AnalysisPage = () => {
                       <Tooltip content={<CustomTooltip />} />
                       <Legend />
                       <Bar dataKey="invested" name="Investimenti" fill="#1e3a8a" />
-                      <Bar dataKey="revenue" name="Ricavi" fill="#06b6d4" />
+                      <Bar dataKey="revenue" name="Ricavi Biglietti" fill="#06b6d4" />
+                      <Bar dataKey="serviceRevenue" name="Ricavi Servizi" fill="#10b981" />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Andamento Profitto</CardTitle>
-                  <CardDescription>
-                    Profitto netto per ogni periodo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={cashflowData}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="period" />
-                      <YAxis />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                      <Line
-                        type="monotone"
-                        dataKey="profit"
-                        name="Profitto"
-                        stroke="#10b981"
-                        activeDot={{ r: 8 }}
-                        strokeWidth={2}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              <ServiceAnalysis period={period} />
             </div>
 
             <Card>
@@ -166,7 +142,7 @@ const AnalysisPage = () => {
                     <Area
                       type="monotone"
                       dataKey="revenue"
-                      name="Ricavi Cumulativi"
+                      name="Ricavi Biglietti Cumulativi"
                       stackId="2"
                       stroke="#06b6d4"
                       fill="#06b6d4"
@@ -174,11 +150,20 @@ const AnalysisPage = () => {
                     />
                     <Area
                       type="monotone"
-                      dataKey="profit"
-                      name="Profitto Cumulativo"
+                      dataKey="serviceRevenue"
+                      name="Ricavi Servizi Cumulativi"
                       stackId="3"
                       stroke="#10b981"
                       fill="#10b981"
+                      fillOpacity={0.3}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="profit"
+                      name="Profitto Cumulativo"
+                      stackId="4"
+                      stroke="#f59e0b"
+                      fill="#f59e0b"
                       fillOpacity={0.3}
                     />
                   </AreaChart>
@@ -186,7 +171,7 @@ const AnalysisPage = () => {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -206,7 +191,7 @@ const AnalysisPage = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Ricavi Previsti
+                    Ricavi Biglietti
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -215,6 +200,22 @@ const AnalysisPage = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Totale ricavi attesi
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Ricavi Servizi
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-success">
+                    €{summary.totalServiceRevenue.toFixed(2)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Totale ricavi da servizi
                   </p>
                 </CardContent>
               </Card>

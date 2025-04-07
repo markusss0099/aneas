@@ -7,7 +7,8 @@ import {
   BarChart3, 
   List, 
   Menu, 
-  X
+  X,
+  ArrowUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -48,6 +49,7 @@ const Navbar = () => {
   const navItems = [
     { to: "/", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
     { to: "/tickets", icon: <Ticket size={20} />, label: "Biglietti" },
+    { to: "/pulling", icon: <ArrowUp size={20} />, label: "Pulling" },
     { to: "/analysis", icon: <BarChart3 size={20} />, label: "Analisi" },
     { to: "/summary", icon: <List size={20} />, label: "Sommario" },
   ];
