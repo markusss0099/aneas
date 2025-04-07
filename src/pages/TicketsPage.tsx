@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -14,29 +14,77 @@ import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
 import { Ticket } from '@/types';
 import { addTicket, deleteTicket, getTickets, updateTicket } from '@/services/ticketService';
+import { debugLog } from '@/lib/debugUtils';
+import { useToast } from '@/hooks/use-toast';
 
 const TicketsPage = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(getTickets());
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    refreshTickets();
+  }, []);
 
   const refreshTickets = () => {
-    setTickets(getTickets());
+    const loadedTickets = getTickets();
+    setTickets(loadedTickets);
+    debugLog('Tickets refreshed in TicketsPage', loadedTickets);
   };
 
   const handleAddTicket = (newTicket: Omit<Ticket, 'id'>) => {
-    addTicket(newTicket);
-    refreshTickets();
-    setIsAddDialogOpen(false);
+    try {
+      addTicket(newTicket);
+      refreshTickets();
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Biglietto Aggiunto",
+        description: `Biglietto per "${newTicket.eventName}" aggiunto con successo.`,
+      });
+    } catch (error) {
+      debugLog('Error adding ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiunta del biglietto.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUpdateTicket = (updatedTicket: Ticket) => {
-    updateTicket(updatedTicket);
-    refreshTickets();
+    try {
+      updateTicket(updatedTicket);
+      refreshTickets();
+      toast({
+        title: "Biglietto Aggiornato",
+        description: `Biglietto per "${updatedTicket.eventName}" aggiornato con successo.`,
+      });
+    } catch (error) {
+      debugLog('Error updating ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteTicket = (id: string) => {
-    deleteTicket(id);
-    refreshTickets();
+    try {
+      deleteTicket(id);
+      refreshTickets();
+      toast({
+        title: "Biglietto Eliminato",
+        description: "Il biglietto è stato eliminato con successo.",
+      });
+    } catch (error) {
+      debugLog('Error deleting ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'eliminazione del biglietto.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

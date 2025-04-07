@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
-  Check, 
   MoreHorizontal, 
   PenLine, 
   Trash2, 
@@ -50,6 +49,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { debugLog } from '@/lib/debugUtils';
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -61,25 +61,50 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
   const [search, setSearch] = useState('');
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const filteredTickets = tickets.filter(ticket => 
     ticket.eventName.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleEdit = (ticket: Ticket) => {
+  const handleEdit = useCallback((ticket: Ticket) => {
     setEditingTicket(ticket);
-  };
+    setIsEditDialogOpen(true);
+    debugLog('Editing ticket', ticket);
+  }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     setDeletingTicketId(id);
-  };
+    setIsDeleteDialogOpen(true);
+    debugLog('Deleting ticket', { id });
+  }, []);
 
-  const confirmDelete = () => {
+  const handleEditCancel = useCallback(() => {
+    setEditingTicket(null);
+    setIsEditDialogOpen(false);
+  }, []);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeletingTicketId(null);
+    setIsDeleteDialogOpen(false);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
     if (deletingTicketId) {
       onDeleteTicket(deletingTicketId);
       setDeletingTicketId(null);
+      setIsDeleteDialogOpen(false);
     }
-  };
+  }, [deletingTicketId, onDeleteTicket]);
+
+  const handleSubmitEdit = useCallback((data: Ticket) => {
+    if (editingTicket) {
+      onUpdateTicket({ ...data, id: editingTicket.id });
+      setEditingTicket(null);
+      setIsEditDialogOpen(false);
+    }
+  }, [editingTicket, onUpdateTicket]);
 
   return (
     <>
@@ -179,7 +204,7 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
       </div>
 
       {/* Modal di modifica biglietto */}
-      <Dialog open={!!editingTicket} onOpenChange={(open) => !open && setEditingTicket(null)}>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Modifica Biglietto</DialogTitle>
@@ -187,18 +212,15 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
           {editingTicket && (
             <TicketForm
               initialData={editingTicket}
-              onSubmit={(data) => {
-                onUpdateTicket({ ...data, id: editingTicket.id });
-                setEditingTicket(null);
-              }}
-              onCancel={() => setEditingTicket(null)}
+              onSubmit={handleSubmitEdit}
+              onCancel={handleEditCancel}
             />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Alert dialog per conferma eliminazione */}
-      <AlertDialog open={!!deletingTicketId} onOpenChange={(open) => !open && setDeletingTicketId(null)}>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Sei sicuro di voler eliminare questo biglietto?</AlertDialogTitle>
@@ -207,7 +229,7 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleDeleteCancel}>Annulla</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive">
               Elimina
             </AlertDialogAction>

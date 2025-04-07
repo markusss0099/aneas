@@ -47,3 +47,35 @@ export const debugLog = (message: string, data?: any): void => {
     }
   }
 };
+
+/**
+ * Log state changes for easier debugging
+ */
+export const debugState = <T>(stateName: string, oldValue: T, newValue: T): void => {
+  if (isDebugEnabled()) {
+    console.log(`[DEBUG STATE] ${stateName} changed:`, {
+      from: oldValue,
+      to: newValue,
+      diff: JSON.stringify(oldValue) !== JSON.stringify(newValue)
+    });
+  }
+};
+
+/**
+ * Log UI interactions for debugging
+ */
+export const debugAction = (actionType: string, details?: any): void => {
+  if (isDebugEnabled()) {
+    console.log(`[DEBUG ACTION] ${actionType}`, details || {});
+  }
+};
+
+/**
+ * Clear all debug logs from console
+ */
+export const clearDebugLogs = (): void => {
+  if (isDebugEnabled()) {
+    console.clear();
+    console.log('[DEBUG] Console cleared');
+  }
+};
