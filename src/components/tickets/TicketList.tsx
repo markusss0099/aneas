@@ -31,9 +31,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { calculateTicketProfit, calculateTicketMargin } from '@/services/ticketService';
+import { 
+  calculateTicketProfit, 
+  calculateTicketMargin, 
+  calculateTicketTotalCost,
+  calculateTicketTotalRevenue
+} from '@/services/ticketService';
 import { Ticket } from '@/types';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
 import TicketForm from './TicketForm';
 import { 
   AlertDialog,
@@ -96,6 +101,7 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
             <TableRow>
               <TableHead>Evento</TableHead>
               <TableHead>Data Evento</TableHead>
+              <TableHead>Quantità</TableHead>
               <TableHead>Incasso Previsto</TableHead>
               <TableHead>Costo Totale</TableHead>
               <TableHead>Profitto</TableHead>
@@ -106,7 +112,7 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
           <TableBody>
             {filteredTickets.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   Nessun biglietto trovato.
                 </TableCell>
               </TableRow>
@@ -114,13 +120,15 @@ const TicketList = ({ tickets, onUpdateTicket, onDeleteTicket }: TicketListProps
               filteredTickets.map((ticket) => {
                 const profit = calculateTicketProfit(ticket);
                 const margin = calculateTicketMargin(ticket);
-                const totalCost = ticket.ticketPrice + ticket.additionalCosts;
+                const totalCost = calculateTicketTotalCost(ticket);
+                const totalRevenue = calculateTicketTotalRevenue(ticket);
                 
                 return (
                   <TableRow key={ticket.id}>
                     <TableCell className="font-medium">{ticket.eventName}</TableCell>
                     <TableCell>{formatDate(ticket.eventDate)}</TableCell>
-                    <TableCell>{formatCurrency(ticket.expectedRevenue)}</TableCell>
+                    <TableCell>{formatQuantity(ticket.quantity)}</TableCell>
+                    <TableCell>{formatCurrency(totalRevenue)}</TableCell>
                     <TableCell>{formatCurrency(totalCost)}</TableCell>
                     <TableCell>
                       <div className="flex items-center">

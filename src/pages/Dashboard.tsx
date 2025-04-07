@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import {
 import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle } from 'lucide-react';
 import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticketService';
 import { formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -166,9 +166,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-// Utility function per condizioni e classi
-const cn = (...classes: (string | boolean | undefined)[]) => 
-  classes.filter(Boolean).join(' ');
 
 export default Dashboard;

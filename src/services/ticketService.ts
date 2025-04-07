@@ -59,27 +59,37 @@ export const updateTicket = (updatedTicket: Ticket): void => {
   saveTickets(updatedTickets);
 };
 
-// Calcola il profitto per un singolo biglietto
+// Calcola il costo totale per un singolo biglietto (considerando la quantità)
+export const calculateTicketTotalCost = (ticket: Ticket): number => {
+  return (ticket.ticketPrice + ticket.additionalCosts) * ticket.quantity;
+};
+
+// Calcola il ricavo totale per un singolo biglietto (considerando la quantità)
+export const calculateTicketTotalRevenue = (ticket: Ticket): number => {
+  return ticket.expectedRevenue * ticket.quantity;
+};
+
+// Calcola il profitto per un singolo biglietto (considerando la quantità)
 export const calculateTicketProfit = (ticket: Ticket): number => {
-  return ticket.expectedRevenue - ticket.ticketPrice - ticket.additionalCosts;
+  return calculateTicketTotalRevenue(ticket) - calculateTicketTotalCost(ticket);
 };
 
 // Calcola il margine per un singolo biglietto
 export const calculateTicketMargin = (ticket: Ticket): number => {
+  const totalCost = calculateTicketTotalCost(ticket);
   const profit = calculateTicketProfit(ticket);
-  const costs = ticket.ticketPrice + ticket.additionalCosts;
-  return costs > 0 ? (profit / costs) * 100 : 0;
+  return totalCost > 0 ? (profit / totalCost) * 100 : 0;
 };
 
 // Ottieni il sommario finanziario
 export const getFinancialSummary = (): FinancialSummary => {
   const tickets = getTickets();
   
-  const totalTickets = tickets.length;
+  const totalTickets = tickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
   const totalInvested = tickets.reduce((sum, ticket) => 
-    sum + ticket.ticketPrice + ticket.additionalCosts, 0);
+    sum + calculateTicketTotalCost(ticket), 0);
   const totalRevenue = tickets.reduce((sum, ticket) => 
-    sum + ticket.expectedRevenue, 0);
+    sum + calculateTicketTotalRevenue(ticket), 0);
   const totalProfit = totalRevenue - totalInvested;
   const profitMargin = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
   
@@ -152,10 +162,10 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
     }
     
     // Aggiorna investimenti nel periodo di acquisto
-    result[purchasePeriod].invested += ticket.ticketPrice + ticket.additionalCosts;
+    result[purchasePeriod].invested += calculateTicketTotalCost(ticket);
     
     // Aggiorna ricavi e profitti nel periodo di pagamento atteso
-    result[paymentPeriod].revenue += ticket.expectedRevenue;
+    result[paymentPeriod].revenue += calculateTicketTotalRevenue(ticket);
     result[paymentPeriod].profit += calculateTicketProfit(ticket);
   });
   

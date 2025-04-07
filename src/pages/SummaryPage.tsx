@@ -19,8 +19,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { getCashflowByPeriod, getFinancialSummary, getTickets } from '@/services/ticketService';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { 
+  getCashflowByPeriod, 
+  getFinancialSummary, 
+  getTickets, 
+  calculateTicketTotalCost,
+  calculateTicketTotalRevenue,
+  calculateTicketProfit
+} from '@/services/ticketService';
+import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
 import { Period } from '@/types';
 
 const SummaryPage = () => {
@@ -31,8 +38,8 @@ const SummaryPage = () => {
 
   // Dati per il grafico a torta dei costi
   const costData = [
-    { name: 'Prezzo Biglietti', value: tickets.reduce((sum, t) => sum + t.ticketPrice, 0) },
-    { name: 'Costi Aggiuntivi', value: tickets.reduce((sum, t) => sum + t.additionalCosts, 0) },
+    { name: 'Prezzo Biglietti', value: tickets.reduce((sum, t) => sum + (t.ticketPrice * t.quantity), 0) },
+    { name: 'Costi Aggiuntivi', value: tickets.reduce((sum, t) => sum + (t.additionalCosts * t.quantity), 0) },
   ];
 
   // Dati per il grafico a torta del profitto vs investimento
@@ -232,23 +239,25 @@ const SummaryPage = () => {
                   <TableRow>
                     <TableHead>Evento</TableHead>
                     <TableHead>Data Evento</TableHead>
+                    <TableHead>Quantità</TableHead>
                     <TableHead>Pagamento Previsto</TableHead>
-                    <TableHead>Costo</TableHead>
-                    <TableHead>Ricavo</TableHead>
+                    <TableHead>Costo Totale</TableHead>
+                    <TableHead>Ricavo Totale</TableHead>
                     <TableHead>Profitto</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentTickets.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={7} className="h-24 text-center">
                         Nessun evento recente trovato.
                       </TableCell>
                     </TableRow>
                   ) : (
                     recentTickets.map((ticket) => {
-                      const totalCost = ticket.ticketPrice + ticket.additionalCosts;
-                      const profit = ticket.expectedRevenue - totalCost;
+                      const totalCost = calculateTicketTotalCost(ticket);
+                      const totalRevenue = calculateTicketTotalRevenue(ticket);
+                      const profit = calculateTicketProfit(ticket);
                       
                       return (
                         <TableRow key={ticket.id}>
@@ -256,9 +265,10 @@ const SummaryPage = () => {
                             {ticket.eventName}
                           </TableCell>
                           <TableCell>{formatDate(ticket.eventDate)}</TableCell>
+                          <TableCell>{formatQuantity(ticket.quantity)}</TableCell>
                           <TableCell>{formatDate(ticket.expectedPaymentDate)}</TableCell>
                           <TableCell>{formatCurrency(totalCost)}</TableCell>
-                          <TableCell>{formatCurrency(ticket.expectedRevenue)}</TableCell>
+                          <TableCell>{formatCurrency(totalRevenue)}</TableCell>
                           <TableCell>
                             <Badge variant={profit >= 0 ? "outline" : "destructive"}>
                               {formatCurrency(profit)}
