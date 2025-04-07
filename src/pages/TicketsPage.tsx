@@ -8,7 +8,7 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
@@ -133,8 +133,17 @@ const TicketsPage = () => {
           onClick={() => setIsAddDialogOpen(true)}
           disabled={isLoading}
         >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Nuovo Biglietto
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Elaborazione...
+            </>
+          ) : (
+            <>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Nuovo Biglietto
+            </>
+          )}
         </Button>
       </div>
 
