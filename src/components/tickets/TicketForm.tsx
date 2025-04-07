@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   eventName: z.string().min(3, { message: 'Il nome evento deve contenere almeno 3 caratteri' }),
+  quantity: z.coerce.number().int().min(1, { message: 'La quantità deve essere almeno 1' }),
   purchaseDate: z.date({ required_error: 'La data di acquisto è richiesta' }),
   eventDate: z.date({ required_error: 'La data dell\'evento è richiesta' }),
   expectedPaymentDate: z.date({ required_error: 'La data di pagamento prevista è richiesta' }),
@@ -49,8 +50,9 @@ interface TicketFormProps {
 const TicketForm = ({ onSubmit, initialData, onCancel }: TicketFormProps) => {
   const { toast } = useToast();
   
-  const defaultValues: Partial<FormData> = {
+  const defaultValues: FormData = {
     eventName: initialData?.eventName || '',
+    quantity: initialData?.quantity || 1,
     purchaseDate: initialData?.purchaseDate || new Date(),
     eventDate: initialData?.eventDate || new Date(),
     expectedPaymentDate: initialData?.expectedPaymentDate || new Date(),
@@ -66,7 +68,7 @@ const TicketForm = ({ onSubmit, initialData, onCancel }: TicketFormProps) => {
   });
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data);
+    onSubmit(data as Omit<Ticket, 'id'>);
     toast({
       title: initialData ? 'Biglietto aggiornato' : 'Biglietto aggiunto',
       description: `Il biglietto è stato ${initialData ? 'aggiornato' : 'aggiunto'} con successo.`,
@@ -84,6 +86,30 @@ const TicketForm = ({ onSubmit, initialData, onCancel }: TicketFormProps) => {
               <FormLabel>Nome Evento</FormLabel>
               <FormControl>
                 <Input placeholder="Inserisci il nome dell'evento" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Quantità Biglietti</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min="1" 
+                  step="1" 
+                  placeholder="Numero di biglietti" 
+                  {...field}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    field.onChange(value < 1 ? 1 : value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

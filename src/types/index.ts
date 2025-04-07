@@ -2,6 +2,7 @@
 export interface Ticket {
   id: string;
   eventName: string;
+  quantity: number;
   purchaseDate: Date;
   eventDate: Date;
   expectedPaymentDate: Date;

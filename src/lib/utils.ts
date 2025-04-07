@@ -20,3 +20,7 @@ export function formatDate(date: Date): string {
     day: '2-digit',
   }).format(date);
 }
+
+export function formatQuantity(quantity: number): string {
+  return quantity === 1 ? "1 biglietto" : `${quantity} biglietti`;
+}
