@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,11 +19,14 @@ import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle
 import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticketService';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import DebugPanel from '@/components/debug/DebugPanel';
+import { isDebugEnabled } from '@/lib/debugUtils';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const summary = getFinancialSummary();
   const monthlyCashflow = getCashflowByPeriod('month');
+  const debugMode = isDebugEnabled();
   
   const summaryCards = [
     {
@@ -163,6 +167,9 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Add the DebugPanel component */}
+      <DebugPanel />
     </div>
   );
 };

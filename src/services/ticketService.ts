@@ -1,7 +1,7 @@
-
 import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { debugLog } from '@/lib/debugUtils';
 
 // Simuliamo la persistenza dei dati con localStorage
 const STORAGE_KEY = 'cashflow-tickets';
@@ -14,14 +14,18 @@ export const getTickets = (): Ticket[] => {
   try {
     const tickets = JSON.parse(ticketsJson);
     // Converti stringhe di date in oggetti Date
-    return tickets.map((ticket: any) => ({
+    const parsedTickets = tickets.map((ticket: any) => ({
       ...ticket,
       purchaseDate: new Date(ticket.purchaseDate),
       eventDate: new Date(ticket.eventDate),
       expectedPaymentDate: new Date(ticket.expectedPaymentDate),
     }));
+    
+    debugLog('Retrieved tickets from storage', parsedTickets);
+    return parsedTickets;
   } catch (error) {
     console.error('Error parsing tickets from localStorage', error);
+    debugLog('Error loading tickets', error);
     return [];
   }
 };
@@ -29,6 +33,7 @@ export const getTickets = (): Ticket[] => {
 // Salva i biglietti nel localStorage
 export const saveTickets = (tickets: Ticket[]): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
+  debugLog('Saved tickets to storage', tickets);
 };
 
 // Aggiungi un nuovo biglietto
@@ -40,6 +45,7 @@ export const addTicket = (ticket: Omit<Ticket, 'id'>): Ticket => {
   };
   
   saveTickets([...tickets, newTicket]);
+  debugLog('Added new ticket', newTicket);
   return newTicket;
 };
 
@@ -48,6 +54,7 @@ export const deleteTicket = (id: string): void => {
   const tickets = getTickets();
   const updatedTickets = tickets.filter((ticket) => ticket.id !== id);
   saveTickets(updatedTickets);
+  debugLog('Deleted ticket', { id });
 };
 
 // Aggiorna un biglietto esistente
@@ -57,6 +64,7 @@ export const updateTicket = (updatedTicket: Ticket): void => {
     ticket.id === updatedTicket.id ? updatedTicket : ticket
   );
   saveTickets(updatedTickets);
+  debugLog('Updated ticket', updatedTicket);
 };
 
 // Calcola il costo totale per un singolo biglietto (considerando la quantità)
@@ -93,13 +101,16 @@ export const getFinancialSummary = (): FinancialSummary => {
   const totalProfit = totalRevenue - totalInvested;
   const profitMargin = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
   
-  return {
+  const summary = {
     totalTickets,
     totalInvested,
     totalRevenue,
     totalProfit,
     profitMargin,
   };
+  
+  debugLog('Generated financial summary', summary);
+  return summary;
 };
 
 // Ottieni i dati del cashflow per periodo
