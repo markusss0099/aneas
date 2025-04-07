@@ -44,68 +44,79 @@ const TicketsPage = () => {
 
   const handleAddTicket = useCallback((newTicket: Omit<Ticket, 'id'>) => {
     setIsLoading(true);
-    try {
-      addTicket(newTicket);
-      refreshTickets();
-      setIsAddDialogOpen(false);
-      toast({
-        title: "Biglietto Aggiunto",
-        description: `Biglietto per "${newTicket.eventName}" aggiunto con successo.`,
-      });
-    } catch (error) {
-      debugLog('Error adding ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'aggiunta del biglietto.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // Simuliamo un breve ritardo come nella pagina Pulling
+    setTimeout(() => {
+      try {
+        addTicket(newTicket);
+        refreshTickets();
+        setIsAddDialogOpen(false);
+        toast({
+          title: "Biglietto Aggiunto",
+          description: `Biglietto per "${newTicket.eventName}" aggiunto con successo.`,
+        });
+      } catch (error) {
+        debugLog('Error adding ticket', error);
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore durante l'aggiunta del biglietto.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500);
   }, [refreshTickets, toast]);
 
   const handleUpdateTicket = useCallback((updatedTicket: Ticket) => {
     setIsLoading(true);
-    try {
-      updateTicket(updatedTicket);
-      refreshTickets();
-      toast({
-        title: "Biglietto Aggiornato",
-        description: `Biglietto per "${updatedTicket.eventName}" aggiornato con successo.`,
-      });
-    } catch (error) {
-      debugLog('Error updating ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // Simuliamo un breve ritardo come nella pagina Pulling
+    setTimeout(() => {
+      try {
+        updateTicket(updatedTicket);
+        refreshTickets();
+        toast({
+          title: "Biglietto Aggiornato",
+          description: `Biglietto per "${updatedTicket.eventName}" aggiornato con successo.`,
+        });
+      } catch (error) {
+        debugLog('Error updating ticket', error);
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500);
   }, [refreshTickets, toast]);
 
   const handleDeleteTicket = useCallback((id: string) => {
     setIsLoading(true);
-    try {
-      deleteTicket(id);
-      // Set tickets directly instead of refreshing to avoid any race conditions
-      setTickets(prevTickets => prevTickets.filter(ticket => ticket.id !== id));
-      debugLog('Ticket deleted successfully', { id });
-      toast({
-        title: "Biglietto Eliminato",
-        description: "Il biglietto è stato eliminato con successo.",
-      });
-    } catch (error) {
-      debugLog('Error deleting ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'eliminazione del biglietto.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    
+    // Simuliamo un breve ritardo come nella pagina Pulling
+    setTimeout(() => {
+      try {
+        deleteTicket(id);
+        // Aggiorniamo lo stato direttamente per evitare problemi di race condition
+        setTickets(prevTickets => prevTickets.filter(ticket => ticket.id !== id));
+        toast({
+          title: "Biglietto Eliminato",
+          description: "Il biglietto è stato eliminato con successo.",
+        });
+      } catch (error) {
+        debugLog('Error deleting ticket', error);
+        toast({
+          title: "Errore",
+          description: "Si è verificato un errore durante l'eliminazione del biglietto.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    }, 500);
   }, [toast]);
 
   return (
