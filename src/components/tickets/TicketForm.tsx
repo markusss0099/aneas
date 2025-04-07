@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,9 +45,10 @@ interface TicketFormProps {
   onSubmit: (data: Omit<Ticket, 'id'>) => void;
   initialData?: Ticket;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
-const TicketForm = ({ onSubmit, initialData, onCancel }: TicketFormProps) => {
+const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: TicketFormProps) => {
   const { toast } = useToast();
   
   const defaultValues: FormData = {
@@ -300,11 +301,18 @@ const TicketForm = ({ onSubmit, initialData, onCancel }: TicketFormProps) => {
         />
 
         <div className="flex justify-end space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
             Annulla
           </Button>
-          <Button type="submit">
-            {initialData ? 'Aggiorna Biglietto' : 'Aggiungi Biglietto'}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {initialData ? 'Aggiornamento...' : 'Aggiunta...'}
+              </>
+            ) : (
+              initialData ? 'Aggiorna Biglietto' : 'Aggiungi Biglietto'
+            )}
           </Button>
         </div>
       </form>
