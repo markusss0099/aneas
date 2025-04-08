@@ -100,17 +100,18 @@ const TicketList = ({
         <ScrollArea className="w-full overflow-auto">
           <div className="min-w-full">
             <TicketTable 
-              tickets={filteredTickets}
+              tickets={tickets}
+              filteredTickets={filteredTickets}
               onEdit={handleEdit}
               onDelete={handleDelete}
               isLoading={isProcessingAll}
-              isMobile={true}
             />
           </div>
         </ScrollArea>
       ) : (
         <TicketTable 
-          tickets={filteredTickets}
+          tickets={tickets}
+          filteredTickets={filteredTickets}
           onEdit={handleEdit}
           onDelete={handleDelete}
           isLoading={isProcessingAll}
