@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,14 +17,18 @@ const LoginPage = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const { toast: toastUI } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Controlla se l'utente è già autenticato
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const authenticated = await isAuthenticated();
+        console.log('Login page - user authenticated:', authenticated);
         if (authenticated) {
-          navigate('/');
+          // Reindirizza alla home o alla pagina precedente se disponibile
+          const from = location.state?.from?.pathname || '/';
+          navigate(from, { replace: true });
         }
       } catch (error) {
         console.error('Error checking authentication', error);
@@ -48,7 +52,7 @@ const LoginPage = () => {
         authListener.subscription.unsubscribe();
       }
     };
-  }, [navigate]);
+  }, [navigate, location]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

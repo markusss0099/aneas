@@ -7,11 +7,28 @@ import { debugLog } from '@/lib/debugUtils';
 export const isAuthenticated = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase.auth.getSession();
+    
     if (error) {
       console.error('Error checking authentication', error);
       return false;
     }
-    return data.session !== null;
+    
+    const hasSession = data.session !== null;
+    console.log('Auth check - Session exists:', hasSession);
+    
+    if (hasSession) {
+      // Verifica se il token di sessione è valido
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !userData.user) {
+        console.error('Session exists but user invalid:', userError);
+        return false;
+      }
+      
+      return true;
+    }
+    
+    return false;
   } catch (error) {
     console.error('Error in isAuthenticated:', error);
     return false;
