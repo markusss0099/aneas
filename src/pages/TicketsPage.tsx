@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
 import { Ticket } from '@/types';
-import { addTicket, deleteTicket, getTickets, updateTicket } from '@/services/ticketService';
+import { addTicket, deleteTicket, getTickets, updateTicket } from '@/services/ticket';
 import { debugLog } from '@/lib/debugUtils';
 import { useToast } from '@/hooks/use-toast';
 

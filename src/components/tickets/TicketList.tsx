@@ -36,7 +36,7 @@ import {
   calculateTicketMargin, 
   calculateTicketTotalCost,
   calculateTicketTotalRevenue
-} from '@/services/ticketService';
+} from '@/services/ticket';
 import { Ticket } from '@/types';
 import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
 import TicketForm from './TicketForm';

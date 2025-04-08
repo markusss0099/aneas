@@ -1,98 +1,11 @@
 
-import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../types';
+import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { debugLog } from '@/lib/debugUtils';
-import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from './serviceService';
-import { getUserStorageKey } from './authService';
-
-// Base key for tickets storage
-const BASE_STORAGE_KEY = 'cashflow-tickets';
-
-// Carica i biglietti dal localStorage
-export const getTickets = (): Ticket[] => {
-  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
-  const ticketsJson = localStorage.getItem(STORAGE_KEY);
-  if (!ticketsJson) return [];
-  
-  try {
-    const tickets = JSON.parse(ticketsJson);
-    // Converti stringhe di date in oggetti Date
-    const parsedTickets = tickets.map((ticket: any) => ({
-      ...ticket,
-      purchaseDate: new Date(ticket.purchaseDate),
-      eventDate: new Date(ticket.eventDate),
-      expectedPaymentDate: new Date(ticket.expectedPaymentDate),
-    }));
-    
-    debugLog('Retrieved tickets from storage', parsedTickets);
-    return parsedTickets;
-  } catch (error) {
-    console.error('Error parsing tickets from localStorage', error);
-    debugLog('Error loading tickets', error);
-    return [];
-  }
-};
-
-// Salva i biglietti nel localStorage
-export const saveTickets = (tickets: Ticket[]): void => {
-  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
-  debugLog('Saved tickets to storage', tickets);
-};
-
-// Aggiungi un nuovo biglietto
-export const addTicket = (ticket: Omit<Ticket, 'id'>): Ticket => {
-  const tickets = getTickets();
-  const newTicket = {
-    ...ticket,
-    id: Date.now().toString(),
-  };
-  
-  saveTickets([...tickets, newTicket]);
-  debugLog('Added new ticket', newTicket);
-  return newTicket;
-};
-
-// Elimina un biglietto
-export const deleteTicket = (id: string): void => {
-  const tickets = getTickets();
-  const updatedTickets = tickets.filter((ticket) => ticket.id !== id);
-  saveTickets(updatedTickets);
-  debugLog('Deleted ticket', { id });
-};
-
-// Aggiorna un biglietto esistente
-export const updateTicket = (updatedTicket: Ticket): void => {
-  const tickets = getTickets();
-  const updatedTickets = tickets.map((ticket) => 
-    ticket.id === updatedTicket.id ? updatedTicket : ticket
-  );
-  saveTickets(updatedTickets);
-  debugLog('Updated ticket', updatedTicket);
-};
-
-// Calcola il costo totale per un singolo biglietto (considerando la quantità)
-export const calculateTicketTotalCost = (ticket: Ticket): number => {
-  return (ticket.ticketPrice + ticket.additionalCosts) * ticket.quantity;
-};
-
-// Calcola il ricavo totale per un singolo biglietto (considerando la quantità)
-export const calculateTicketTotalRevenue = (ticket: Ticket): number => {
-  return ticket.expectedRevenue * ticket.quantity;
-};
-
-// Calcola il profitto per un singolo biglietto (considerando la quantità)
-export const calculateTicketProfit = (ticket: Ticket): number => {
-  return calculateTicketTotalRevenue(ticket) - calculateTicketTotalCost(ticket);
-};
-
-// Calcola il margine per un singolo biglietto
-export const calculateTicketMargin = (ticket: Ticket): number => {
-  const totalCost = calculateTicketTotalCost(ticket);
-  const profit = calculateTicketProfit(ticket);
-  return totalCost > 0 ? (profit / totalCost) * 100 : 0;
-};
+import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from '../serviceService';
+import { getTickets } from './ticketStorage';
+import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit } from './ticketCalculations';
 
 // Ottieni il sommario finanziario
 export const getFinancialSummary = (): FinancialSummary => {
