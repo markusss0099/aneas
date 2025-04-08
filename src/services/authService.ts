@@ -5,19 +5,35 @@ import { debugLog } from '@/lib/debugUtils';
 
 // Controlla se l'utente è autenticato
 export const isAuthenticated = async (): Promise<boolean> => {
-  const { data } = await supabase.auth.getSession();
-  return data.session !== null;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Error checking authentication', error);
+      return false;
+    }
+    return data.session !== null;
+  } catch (error) {
+    console.error('Error in isAuthenticated:', error);
+    return false;
+  }
 };
 
 // Ottieni l'utente corrente
 export const getCurrentUser = async (): Promise<User | null> => {
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) return null;
-  
-  return {
-    id: data.session.user.id,
-    username: data.session.user.email || 'Utente',
-  };
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session) {
+      return null;
+    }
+    
+    return {
+      id: data.session.user.id,
+      username: data.session.user.email || 'Utente',
+    };
+  } catch (error) {
+    console.error('Error in getCurrentUser:', error);
+    return null;
+  }
 };
 
 // Login con email e password
@@ -72,9 +88,15 @@ export const login = async (username: string, password: string): Promise<User> =
 
 // Logout
 export const logout = async (): Promise<void> => {
-  await supabase.auth.signOut();
-  debugLog('Utente disconnesso');
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error during logout:', error);
+      throw error;
+    }
+    debugLog('Utente disconnesso');
+  } catch (error) {
+    console.error('Error in logout:', error);
+    throw error;
+  }
 };
-
-// Non è più necessario getUserStorageKey poiché utilizziamo il user_id nel database
-// con Row Level Security per filtrare i dati

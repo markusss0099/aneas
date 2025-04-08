@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, LogIn } from 'lucide-react';
 import { login, isAuthenticated } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 const LoginPage = () => {
@@ -15,7 +16,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const { toast } = useToast();
+  const { toast: toastUI } = useToast();
   const navigate = useNavigate();
   
   // Controlla se l'utente è già autenticato
@@ -37,13 +38,16 @@ const LoginPage = () => {
     
     // Configura un listener per i cambiamenti di autenticazione
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
+      console.log('Auth state changed:', event, session);
+      if (event === 'SIGNED_IN' && session) {
         navigate('/');
       }
     });
     
     return () => {
-      authListener.subscription.unsubscribe();
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, [navigate]);
   
@@ -51,7 +55,7 @@ const LoginPage = () => {
     e.preventDefault();
     
     if (!username || !password) {
-      toast({
+      toastUI({
         title: "Errore",
         description: "Inserisci email e password",
         variant: "destructive",
@@ -63,14 +67,13 @@ const LoginPage = () => {
     
     try {
       await login(username, password);
-      toast({
-        title: "Login effettuato",
+      toast("Login effettuato", {
         description: `Benvenuto! I tuoi dati saranno sincronizzati in tempo reale su tutti i dispositivi.`,
       });
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      toast({
+      toastUI({
         title: "Errore di login",
         description: error instanceof Error ? error.message : "Si è verificato un errore durante il login",
         variant: "destructive",
