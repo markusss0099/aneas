@@ -7,6 +7,7 @@ import TicketTable from './TicketTable';
 import EditTicketDialog from './EditTicketDialog';
 import DeleteTicketDialog from './DeleteTicketDialog';
 import { debugLog } from '@/lib/debugUtils';
+import { useToast } from '@/hooks/use-toast';
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -22,6 +23,7 @@ const TicketList = ({
   isLoading = false 
 }: TicketListProps) => {
   const [search, setSearch] = useState('');
+  const { toast } = useToast();
   const {
     editingTicket,
     deletingTicketId,
@@ -46,20 +48,38 @@ const TicketList = ({
 
   // Handle edit submission by calling the parent's update function
   const handleSubmitEdit = (data: Ticket) => {
-    if (editingTicket) {
-      const updatedTicket = { ...data, id: editingTicket.id };
-      updateTicketHandler(updatedTicket);
-      // Call the parent's update function
-      onUpdateTicket(updatedTicket);
+    try {
+      if (editingTicket) {
+        const updatedTicket = { ...data, id: editingTicket.id };
+        updateTicketHandler(updatedTicket);
+        // Call the parent's update function
+        onUpdateTicket(updatedTicket);
+      }
+    } catch (error) {
+      debugLog('Error handling ticket edit submission', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nell'aggiornare il biglietto.",
+        variant: "destructive",
+      });
     }
   };
 
   // Handle delete confirmation by calling the parent's delete function
   const confirmDelete = () => {
-    if (deletingTicketId) {
-      deleteTicketHandler();
-      // Call the parent's delete function
-      onDeleteTicket(deletingTicketId);
+    try {
+      if (deletingTicketId) {
+        deleteTicketHandler();
+        // Call the parent's delete function
+        onDeleteTicket(deletingTicketId);
+      }
+    } catch (error) {
+      debugLog('Error handling ticket deletion', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nell'eliminare il biglietto.",
+        variant: "destructive",
+      });
     }
   };
 

@@ -27,15 +27,16 @@ export const getTickets = async (): Promise<Ticket[]> => {
     
     // Converti stringhe di date in oggetti Date
     const parsedTickets = data.map((ticket: any) => ({
-      ...ticket,
       id: ticket.id,
+      eventName: ticket.event_name,
+      quantity: ticket.quantity,
       purchaseDate: new Date(ticket.purchase_date),
       eventDate: new Date(ticket.event_date),
       expectedPaymentDate: new Date(ticket.expected_payment_date),
-      eventName: ticket.event_name,
-      ticketPrice: parseFloat(ticket.ticket_price),
-      additionalCosts: parseFloat(ticket.additional_costs),
-      expectedRevenue: parseFloat(ticket.expected_revenue),
+      ticketPrice: parseFloat(String(ticket.ticket_price)),
+      additionalCosts: parseFloat(String(ticket.additional_costs)),
+      expectedRevenue: parseFloat(String(ticket.expected_revenue)),
+      notes: ticket.notes || undefined
     }));
     
     debugLog('Retrieved tickets from Supabase', parsedTickets);
@@ -49,8 +50,8 @@ export const getTickets = async (): Promise<Ticket[]> => {
 
 // Converte un Ticket per l'invio a Supabase
 export const ticketToSupabase = (ticket: Ticket): any => {
+  // Ensure we don't include undefined values that can cause issues
   return {
-    id: ticket.id,
     event_name: ticket.eventName,
     quantity: ticket.quantity,
     purchase_date: ticket.purchaseDate.toISOString(),

@@ -18,7 +18,10 @@ export const useTicketActions = () => {
   
   // Mutation for adding a ticket
   const addTicketMutation = useMutation({
-    mutationFn: (ticketData: Omit<Ticket, 'id'>) => addTicket(ticketData),
+    mutationFn: (ticketData: Omit<Ticket, 'id'>) => {
+      debugLog('Starting ticket addition', ticketData);
+      return addTicket(ticketData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setIsAddingTicket(false);
@@ -40,7 +43,10 @@ export const useTicketActions = () => {
   
   // Mutation for updating a ticket
   const updateTicketMutation = useMutation({
-    mutationFn: (updatedTicket: Ticket) => updateTicket(updatedTicket),
+    mutationFn: (updatedTicket: Ticket) => {
+      debugLog('Starting ticket update', updatedTicket);
+      return updateTicket(updatedTicket);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setEditingTicket(null);
@@ -63,7 +69,10 @@ export const useTicketActions = () => {
   
   // Mutation for deleting a ticket
   const deleteTicketMutation = useMutation({
-    mutationFn: (id: string) => deleteTicket(id),
+    mutationFn: (id: string) => {
+      debugLog('Starting ticket deletion', { id });
+      return deleteTicket(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setDeletingTicketId(null);
@@ -105,20 +114,23 @@ export const useTicketActions = () => {
   }, []);
   
   const handleAddTicket = useCallback((ticketData: Omit<Ticket, 'id'>) => {
+    debugLog('Handling add ticket', ticketData);
     addTicketMutation.mutate(ticketData);
   }, [addTicketMutation]);
   
   const handleUpdateTicket = useCallback((updatedTicket: Ticket) => {
+    debugLog('Handling update ticket', updatedTicket);
     updateTicketMutation.mutate(updatedTicket);
   }, [updateTicketMutation]);
   
   const handleDeleteTicket = useCallback((id: string) => {
+    debugLog('Handling delete ticket', { id });
     deleteTicketMutation.mutate(id);
   }, [deleteTicketMutation]);
   
   const updateTicketHandler = useCallback((ticket: Ticket) => {
     if (editingTicket) {
-      handleUpdateTicket({ ...ticket, id: editingTicket.id });
+      handleUpdateTicket(ticket);
     }
   }, [editingTicket, handleUpdateTicket]);
   
