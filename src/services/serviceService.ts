@@ -15,7 +15,13 @@ export const getAllServices = async (): Promise<Service[]> => {
       throw error;
     }
 
-    return services || [];
+    // Convert string dates to Date objects
+    const formattedServices = services?.map(service => ({
+      ...service,
+      date: new Date(service.date)
+    })) || [];
+
+    return formattedServices;
   } catch (error) {
     console.error("Failed to fetch all services:", error);
     return [];
@@ -27,9 +33,24 @@ export const getServices = getAllServices;
 
 export const createService = async (service: Omit<Service, 'id' | 'created_at'>): Promise<Service | null> => {
   try {
+    // Get current user
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError || !userData.user) {
+      console.error("Authentication error:", authError);
+      throw authError;
+    }
+
+    const serviceData = {
+      name: service.name,
+      revenue: service.revenue,
+      date: service.date.toISOString(), // Convert Date to ISO string for storage
+      description: service.description,
+      user_id: userData.user.id
+    };
+
     const { data, error } = await supabase
       .from('services')
-      .insert([service])
+      .insert([serviceData])
       .select('*')
       .single();
 
@@ -38,7 +59,11 @@ export const createService = async (service: Omit<Service, 'id' | 'created_at'>)
       throw error;
     }
 
-    return data;
+    // Convert back to Service type with Date object
+    return data ? {
+      ...data,
+      date: new Date(data.date)
+    } : null;
   } catch (error) {
     console.error("Failed to create service:", error);
     return null;
@@ -50,9 +75,15 @@ export const addService = createService;
 
 export const updateService = async (id: string, updates: Partial<Omit<Service, 'id' | 'created_at'>>): Promise<Service | null> => {
   try {
+    // Prepare the update data, converting Date to string if present
+    const updateData: any = { ...updates };
+    if (updates.date) {
+      updateData.date = updates.date.toISOString();
+    }
+
     const { data, error } = await supabase
       .from('services')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select('*')
       .single();
@@ -62,7 +93,11 @@ export const updateService = async (id: string, updates: Partial<Omit<Service, '
       throw error;
     }
 
-    return data;
+    // Convert back to Service type with Date object
+    return data ? {
+      ...data,
+      date: new Date(data.date)
+    } : null;
   } catch (error) {
     console.error("Failed to update service:", error);
     return null;
@@ -97,7 +132,12 @@ export const getServiceById = async (id: string): Promise<Service | null> => {
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // Convert to Service type with Date object
+    return data ? {
+      ...data,
+      date: new Date(data.date)
+    } : null;
   } catch (error) {
     console.error('Error fetching service by ID:', error);
     return null;
@@ -142,7 +182,7 @@ export const getServiceRevenueByPeriod = async (period: 'week' | 'month' | 'quar
     };
     
     services.forEach(service => {
-      const serviceDate = new Date(service.date);
+      const serviceDate = service.date;
       const periodKey = formatPeriod(getPeriodStart(serviceDate));
       
       if (!revenueByPeriod[periodKey]) {

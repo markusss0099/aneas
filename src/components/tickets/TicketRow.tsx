@@ -15,7 +15,9 @@ interface TicketRowProps {
 }
 
 const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: TicketRowProps) => {
-  const profit = ticket.expectedRevenue - ticket.totalCost;
+  // Calculate total cost based on ticketPrice, additionalCosts and quantity
+  const totalCost = (ticket.ticketPrice + ticket.additionalCosts) * ticket.quantity;
+  const profit = ticket.expectedRevenue - totalCost;
   const margin = ticket.expectedRevenue > 0 
     ? ((profit / ticket.expectedRevenue) * 100).toFixed(1) 
     : '0';
@@ -30,7 +32,7 @@ const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: Ti
       </TableCell>
       {!isMobile && <TableCell>{ticket.quantity}</TableCell>}
       {!isMobile && <TableCell>{formatCurrency(ticket.expectedRevenue)}</TableCell>}
-      {!isMobile && <TableCell>{formatCurrency(ticket.totalCost)}</TableCell>}
+      {!isMobile && <TableCell>{formatCurrency(totalCost)}</TableCell>}
       <TableCell className={isMobile ? "px-2 py-2 font-semibold" : ""}>
         <span className={profit > 0 ? 'text-green-600' : 'text-red-600'}>
           {formatCurrency(profit)}

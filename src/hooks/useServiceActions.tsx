@@ -36,7 +36,11 @@ export const useServiceActions = () => {
   
   // Mutation for updating a service
   const updateServiceMutation = useMutation({
-    mutationFn: (updatedService: Service) => updateService(updatedService),
+    mutationFn: (updatedService: Service) => {
+      // Extract id and remove it from the object to be passed as updates
+      const { id, ...updates } = updatedService;
+      return updateService(id, updates);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['services'] });
       queryClient.invalidateQueries({ queryKey: ['serviceRevenue'] });
