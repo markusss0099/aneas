@@ -10,37 +10,62 @@ interface ViagogoPriceProps {
 const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
   const [price, setPrice] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     if (!link) return;
     
-    setIsLoading(true);
-    
-    // Function to extract price from Viagogo URL
-    const extractPriceFromLink = (url: string): string | null => {
+    const fetchViagogoPriceFromPage = async (url: string) => {
       try {
-        // Common pattern in Viagogo URLs where price appears before "each"
-        const pricePattern = /€(\d+(?:\.\d+)?)\s*each/i;
-        const match = url.match(pricePattern);
+        setIsLoading(true);
+        setIsError(false);
+        
+        // Create a URL object to ensure we're working with a proper URL
+        const viagogoUrl = new URL(url);
+        
+        // Call the Supabase Edge Function to fetch the page content
+        // This would need to be implemented as a serverless function
+        // For now, we'll continue to use our fallback extraction method
+        
+        // Fallback: Extract price from URL or parts of the URL
+        const pricePattern = /€(\d+(?:\.\d+)?)/i;
+        const urlString = viagogoUrl.toString();
+        const match = urlString.match(pricePattern);
         
         if (match && match[1]) {
-          debugLog('Extracted price from Viagogo link:', match[1]);
-          return `€${match[1]}`;
+          debugLog('Extracted price from Viagogo URL:', match[1]);
+          setPrice(`€${match[1]}`);
+        } else {
+          // Check if price is in the pathname or search params
+          const pathMatch = viagogoUrl.pathname.match(pricePattern);
+          if (pathMatch && pathMatch[1]) {
+            setPrice(`€${pathMatch[1]}`);
+          } else {
+            // If we still can't find a price, check for price indicators in the URL
+            if (urlString.toLowerCase().includes('prezzo') || 
+                urlString.toLowerCase().includes('price') || 
+                urlString.toLowerCase().includes('costo')) {
+              // Look for nearby numbers
+              const nearbyPriceMatch = urlString.match(/(?:prezzo|price|costo)[^\d]*(\d+(?:\.\d+)?)/i);
+              if (nearbyPriceMatch && nearbyPriceMatch[1]) {
+                setPrice(`€${nearbyPriceMatch[1]}`);
+              } else {
+                setIsError(true);
+              }
+            } else {
+              setIsError(true);
+            }
+          }
         }
-        
-        // If we can't find a price with the pattern, return a default message
-        debugLog('Could not extract price from Viagogo link:', url);
-        return null;
       } catch (error) {
-        debugLog('Error extracting price from Viagogo link:', error);
-        return null;
+        debugLog('Error extracting price from Viagogo:', error);
+        setIsError(true);
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    // Extract the price from the link
-    const extractedPrice = extractPriceFromLink(link);
-    setPrice(extractedPrice);
-    setIsLoading(false);
+    fetchViagogoPriceFromPage(link);
   }, [link]);
 
   if (!link) return <span className="text-gray-400">-</span>;
@@ -59,7 +84,9 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
       {price ? (
         <span className="font-medium text-green-600">{price}</span>
       ) : (
-        <span className="text-yellow-600">Prezzo non trovato</span>
+        <span className="text-yellow-600">
+          {isError ? "Impossibile estrarre il prezzo" : "Prezzo non trovato"}
+        </span>
       )}
       <a 
         href={link} 
