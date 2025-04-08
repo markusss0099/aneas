@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,12 +51,17 @@ interface TicketFormProps {
 const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: TicketFormProps) => {
   const { toast } = useToast();
   
+  // Calcola la data di pagamento prevista (7 giorni dopo la data dell'evento)
+  const calculateExpectedPaymentDate = (eventDate: Date): Date => {
+    return addDays(eventDate, 7);
+  };
+  
   const defaultValues: FormData = {
     eventName: initialData?.eventName || '',
     quantity: initialData?.quantity || 1,
     purchaseDate: initialData?.purchaseDate || new Date(),
     eventDate: initialData?.eventDate || new Date(),
-    expectedPaymentDate: initialData?.expectedPaymentDate || new Date(),
+    expectedPaymentDate: initialData?.expectedPaymentDate || calculateExpectedPaymentDate(initialData?.eventDate || new Date()),
     ticketPrice: initialData?.ticketPrice || 0,
     additionalCosts: initialData?.additionalCosts || 0,
     expectedRevenue: initialData?.expectedRevenue || 0,
@@ -67,6 +72,17 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+  
+  // Aggiorna la data di pagamento prevista quando cambia la data dell'evento
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'eventDate' && value.eventDate) {
+        form.setValue('expectedPaymentDate', calculateExpectedPaymentDate(value.eventDate as Date));
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const handleSubmit = (data: FormData) => {
     onSubmit(data as Omit<Ticket, 'id'>);
@@ -205,37 +221,19 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
             name="expectedPaymentDate"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Data Prevista Incasso</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "dd/MM/yyyy", { locale: it })
-                        ) : (
-                          <span>Seleziona una data</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                      locale={it}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormLabel>Data Prevista Incasso (7 giorni dopo l'evento)</FormLabel>
+                <FormControl>
+                  <div className={cn(
+                    "flex h-10 pl-3 items-center border rounded-md bg-muted/50",
+                    "text-sm"
+                  )}>
+                    {field.value ? (
+                      format(field.value, "dd/MM/yyyy", { locale: it })
+                    ) : (
+                      <span className="text-muted-foreground">Data calcolata automaticamente</span>
+                    )}
+                  </div>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
