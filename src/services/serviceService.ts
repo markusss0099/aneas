@@ -1,3 +1,4 @@
+
 import { Service } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog } from '@/lib/debugUtils';
@@ -112,7 +113,7 @@ export const deleteService = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('services')
     .delete()
-    .eq('id', id)
+    .eq('id', id)  // Ensure id is always passed as a string
     .eq('user_id', userData.user.id);
   
   if (error) {
