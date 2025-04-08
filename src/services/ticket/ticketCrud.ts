@@ -22,25 +22,42 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
   
   debugLog('Adding ticket with data', ticketData);
   
-  const { data, error } = await supabase
-    .from('tickets')
-    .insert([ticketData])
-    .select()
-    .single();
-  
-  if (error) {
-    debugLog('Error adding ticket', error);
-    throw new Error(`Errore nell'aggiunta del biglietto: ${error.message}`);
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .insert([ticketData])
+      .select()
+      .single();
+    
+    if (error) {
+      debugLog('Error adding ticket', error);
+      throw new Error(`Errore nell'aggiunta del biglietto: ${error.message}`);
+    }
+    
+    if (!data) {
+      throw new Error("Nessun dato restituito dopo l'aggiunta del biglietto");
+    }
+    
+    // Converti il risultato nel formato Ticket
+    const newTicket: Ticket = {
+      id: data.id,
+      eventName: data.event_name,
+      quantity: data.quantity,
+      purchaseDate: new Date(data.purchase_date),
+      eventDate: new Date(data.event_date),
+      expectedPaymentDate: new Date(data.expected_payment_date),
+      ticketPrice: parseFloat(data.ticket_price),
+      additionalCosts: parseFloat(data.additional_costs),
+      expectedRevenue: parseFloat(data.expected_revenue),
+      notes: data.notes || undefined
+    };
+    
+    debugLog('Added new ticket', newTicket);
+    return newTicket;
+  } catch (error) {
+    debugLog('Exception adding ticket', error);
+    throw error;
   }
-  
-  // Converti il risultato nel formato Ticket
-  const newTicket: Ticket = {
-    ...ticket,
-    id: data.id || '',
-  };
-  
-  debugLog('Added new ticket', newTicket);
-  return newTicket;
 };
 
 // Elimina un biglietto

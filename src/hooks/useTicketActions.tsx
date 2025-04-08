@@ -1,102 +1,123 @@
 
 import { useState, useCallback } from 'react';
-import { Ticket } from '@/types';
-import { updateTicket, deleteTicket } from '@/services/ticket';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { Ticket } from '@/types';
+import { addTicket, updateTicket, deleteTicket } from '@/services/ticket';
 import { debugLog } from '@/lib/debugUtils';
 
 export const useTicketActions = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAddingTicket, setIsAddingTicket] = useState(false);
   const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  const handleEdit = useCallback((ticket: Ticket) => {
-    if (isLoading) return;
-    setEditingTicket(ticket);
-    setIsEditDialogOpen(true);
-    debugLog('Editing ticket', ticket);
-  }, [isLoading]);
-
-  const handleDelete = useCallback((id: string) => {
-    if (isLoading) return;
-    setDeletingTicketId(id);
-    setIsDeleteDialogOpen(true);
-    debugLog('Deleting ticket', { id });
-  }, [isLoading]);
-
-  const handleEditCancel = useCallback(() => {
-    if (isLoading) return;
-    setEditingTicket(null);
-    setIsEditDialogOpen(false);
-  }, [isLoading]);
-
-  const handleDeleteCancel = useCallback(() => {
-    if (isLoading) return;
-    setDeletingTicketId(null);
-    setIsDeleteDialogOpen(false);
-  }, [isLoading]);
-
-  const updateTicketHandler = useCallback(async (data: Ticket) => {
-    if (!editingTicket || isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      await updateTicket({ ...data, id: editingTicket.id });
-      // Clean up local state
+  const queryClient = useQueryClient();
+  
+  // Mutation for adding a ticket
+  const addTicketMutation = useMutation({
+    mutationFn: (ticketData: Omit<Ticket, 'id'>) => addTicket(ticketData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      setIsAddingTicket(false);
+      
+      toast({
+        title: "Biglietto aggiunto",
+        description: "Il biglietto è stato aggiunto con successo.",
+      });
+    },
+    onError: (error: any) => {
+      debugLog("Errore nell'aggiungere il biglietto:", error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore nell'aggiungere il biglietto.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Mutation for updating a ticket
+  const updateTicketMutation = useMutation({
+    mutationFn: (updatedTicket: Ticket) => updateTicket(updatedTicket),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setEditingTicket(null);
       setIsEditDialogOpen(false);
+      
       toast({
         title: "Biglietto aggiornato",
-        description: "Il biglietto è stato aggiornato con successo."
+        description: "Il biglietto è stato aggiornato con successo.",
       });
-    } catch (error) {
-      debugLog('Error in updateTicketHandler', error);
+    },
+    onError: (error: any) => {
+      debugLog("Errore nell'aggiornare il biglietto:", error);
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
-        variant: "destructive"
+        description: "Si è verificato un errore nell'aggiornare il biglietto.",
+        variant: "destructive",
       });
-    } finally {
-      // Delay setting loading to false to ensure UI updates properly
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 100);
     }
-  }, [editingTicket, isLoading, toast]);
-
-  const deleteTicketHandler = useCallback(async () => {
-    if (!deletingTicketId || isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      await deleteTicket(deletingTicketId);
-      // Clean up local state
+  });
+  
+  // Mutation for deleting a ticket
+  const deleteTicketMutation = useMutation({
+    mutationFn: (id: string) => deleteTicket(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
       setDeletingTicketId(null);
       setIsDeleteDialogOpen(false);
+      
       toast({
         title: "Biglietto eliminato",
-        description: "Il biglietto è stato eliminato con successo."
+        description: "Il biglietto è stato eliminato con successo.",
       });
-    } catch (error) {
-      debugLog('Error in deleteTicketHandler', error);
+    },
+    onError: (error: any) => {
+      debugLog("Errore nell'eliminare il biglietto:", error);
       toast({
         title: "Errore",
-        description: "Si è verificato un errore durante l'eliminazione del biglietto.",
-        variant: "destructive"
+        description: "Si è verificato un errore nell'eliminare il biglietto.",
+        variant: "destructive",
       });
-    } finally {
-      // Delay setting loading to false to ensure UI updates properly
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 100);
     }
-  }, [deletingTicketId, isLoading, toast]);
-
+  });
+  
+  const handleEdit = useCallback((ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setIsEditDialogOpen(true);
+  }, []);
+  
+  const handleDelete = useCallback((id: string) => {
+    setDeletingTicketId(id);
+    setIsDeleteDialogOpen(true);
+  }, []);
+  
+  const handleEditCancel = useCallback(() => {
+    setEditingTicket(null);
+    setIsEditDialogOpen(false);
+  }, []);
+  
+  const handleDeleteCancel = useCallback(() => {
+    setDeletingTicketId(null);
+    setIsDeleteDialogOpen(false);
+  }, []);
+  
+  const handleAddTicket = useCallback((ticketData: Omit<Ticket, 'id'>) => {
+    addTicketMutation.mutate(ticketData);
+  }, [addTicketMutation]);
+  
+  const handleUpdateTicket = useCallback((updatedTicket: Ticket) => {
+    updateTicketMutation.mutate(updatedTicket);
+  }, [updateTicketMutation]);
+  
+  const handleDeleteTicket = useCallback((id: string) => {
+    deleteTicketMutation.mutate(id);
+  }, [deleteTicketMutation]);
+  
   return {
-    isLoading,
+    isAddingTicket,
+    setIsAddingTicket,
     editingTicket,
     deletingTicketId,
     isEditDialogOpen,
@@ -105,7 +126,14 @@ export const useTicketActions = () => {
     handleDelete,
     handleEditCancel,
     handleDeleteCancel,
-    updateTicketHandler,
-    deleteTicketHandler
+    addTicketMutation,
+    updateTicketMutation,
+    deleteTicketMutation,
+    handleAddTicket,
+    handleUpdateTicket,
+    handleDeleteTicket,
+    isProcessing: addTicketMutation.isPending || 
+                  updateTicketMutation.isPending || 
+                  deleteTicketMutation.isPending
   };
 };

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -12,24 +12,31 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
-import { Ticket } from '@/types';
-import { addTicket, deleteTicket, getTickets, updateTicket } from '@/services/ticket';
+import { useQuery } from '@tanstack/react-query';
+import { getTickets } from '@/services/ticket';
+import { useTicketActions } from '@/hooks/useTicketActions';
 import { debugLog } from '@/lib/debugUtils';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 const TicketsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { 
+    handleAddTicket, 
+    handleUpdateTicket, 
+    handleDeleteTicket,
+    isProcessing,
+    addTicketMutation
+  } = useTicketActions();
 
   // Utilizzo di React Query per gestire lo stato e il caricamento
-  const { data: tickets = [], isLoading, error, refetch } = useQuery({
+  const { data: tickets = [], isLoading, error } = useQuery({
     queryKey: ['tickets'],
     queryFn: getTickets,
   });
 
-  useEffect(() => {
+  // React to query errors
+  React.useEffect(() => {
     if (error) {
       toast({
         title: "Errore",
@@ -40,82 +47,8 @@ const TicketsPage = () => {
     }
   }, [error, toast]);
 
-  // Mutation per aggiungere un biglietto
-  const addTicketMutation = useMutation({
-    mutationFn: (newTicket: Omit<Ticket, 'id'>) => addTicket(newTicket),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      setIsAddDialogOpen(false);
-      toast({
-        title: "Biglietto Aggiunto",
-        description: "Il biglietto è stato aggiunto con successo.",
-      });
-    },
-    onError: (error) => {
-      debugLog('Error adding ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'aggiunta del biglietto.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Mutation per aggiornare un biglietto
-  const updateTicketMutation = useMutation({
-    mutationFn: (updatedTicket: Ticket) => updateTicket(updatedTicket),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast({
-        title: "Biglietto Aggiornato",
-        description: "Il biglietto è stato aggiornato con successo.",
-      });
-    },
-    onError: (error) => {
-      debugLog('Error updating ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Mutation per eliminare un biglietto
-  const deleteTicketMutation = useMutation({
-    mutationFn: (id: string) => deleteTicket(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast({
-        title: "Biglietto Eliminato",
-        description: "Il biglietto è stato eliminato con successo.",
-      });
-    },
-    onError: (error) => {
-      debugLog('Error deleting ticket', error);
-      toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante l'eliminazione del biglietto.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleAddTicket = useCallback((newTicket: Omit<Ticket, 'id'>) => {
-    addTicketMutation.mutate(newTicket);
-  }, [addTicketMutation]);
-
-  const handleUpdateTicket = useCallback((updatedTicket: Ticket) => {
-    updateTicketMutation.mutate(updatedTicket);
-  }, [updateTicketMutation]);
-
-  const handleDeleteTicket = useCallback((id: string) => {
-    deleteTicketMutation.mutate(id);
-  }, [deleteTicketMutation]);
-
-  // Controlla se qualsiasi operazione è in corso
-  const isProcessing = isLoading || addTicketMutation.isPending || 
-                      updateTicketMutation.isPending || deleteTicketMutation.isPending;
+  // Combined loading state
+  const isPageLoading = isLoading || isProcessing;
 
   return (
     <div className="animate-in space-y-6">
@@ -129,9 +62,9 @@ const TicketsPage = () => {
         <Button
           className="mt-4 md:mt-0"
           onClick={() => setIsAddDialogOpen(true)}
-          disabled={isProcessing}
+          disabled={isPageLoading}
         >
-          {isProcessing ? (
+          {isPageLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Elaborazione...
@@ -157,14 +90,14 @@ const TicketsPage = () => {
             tickets={tickets}
             onUpdateTicket={handleUpdateTicket}
             onDeleteTicket={handleDeleteTicket}
-            isLoading={isProcessing}
+            isLoading={isPageLoading}
           />
         </CardContent>
       </Card>
 
       {/* Dialog per aggiungere un nuovo biglietto */}
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-        if (!isProcessing) setIsAddDialogOpen(open);
+        if (!isPageLoading) setIsAddDialogOpen(open);
       }}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -172,7 +105,7 @@ const TicketsPage = () => {
           </DialogHeader>
           <TicketForm
             onSubmit={handleAddTicket}
-            onCancel={() => !isProcessing && setIsAddDialogOpen(false)}
+            onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
             isLoading={addTicketMutation.isPending}
           />
         </DialogContent>
