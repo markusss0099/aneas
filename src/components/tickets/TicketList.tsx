@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Ticket } from '@/types';
 import { useTicketActions } from '@/hooks/useTicketActions';
@@ -41,21 +40,17 @@ const TicketList = ({
     isProcessing
   } = useTicketActions();
 
-  // Combined loading state
   const isProcessingAll = isLoading || isProcessing;
 
-  // Filter tickets based on search term
   const filteredTickets = tickets.filter(ticket => 
     ticket.eventName.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Handle edit submission by calling the parent's update function
   const handleSubmitEdit = (data: Ticket) => {
     try {
       if (editingTicket) {
         const updatedTicket = { ...data, id: editingTicket.id };
         updateTicketHandler(updatedTicket);
-        // Call the parent's update function
         onUpdateTicket(updatedTicket);
       }
     } catch (error) {
@@ -68,12 +63,10 @@ const TicketList = ({
     }
   };
 
-  // Handle delete confirmation by calling the parent's delete function
   const confirmDelete = () => {
     try {
       if (deletingTicketId) {
         deleteTicketHandler();
-        // Call the parent's delete function
         onDeleteTicket(deletingTicketId);
       }
     } catch (error) {
@@ -105,6 +98,7 @@ const TicketList = ({
               onEdit={handleEdit}
               onDelete={handleDelete}
               isLoading={isProcessingAll}
+              isMobile={true}
             />
           </div>
         </ScrollArea>

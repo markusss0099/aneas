@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -53,7 +52,6 @@ interface TicketFormProps {
 const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: TicketFormProps) => {
   const { toast } = useToast();
   
-  // Calcola la data di pagamento prevista (7 giorni dopo la data dell'evento)
   const calculateExpectedPaymentDate = (eventDate: Date): Date => {
     return addDays(eventDate, 7);
   };
@@ -76,7 +74,6 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
     defaultValues,
   });
   
-  // Aggiorna la data di pagamento prevista quando cambia la data dell'evento
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'eventDate' && value.eventDate) {
@@ -88,7 +85,12 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
   }, [form]);
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data as Omit<Ticket, 'id'>);
+    const submissionData = {
+      ...data,
+      viagogoLink: data.viagogoLink || undefined
+    };
+    
+    onSubmit(submissionData as Omit<Ticket, 'id'>);
     toast({
       title: initialData ? 'Biglietto aggiornato' : 'Biglietto aggiunto',
       description: `Il biglietto è stato ${initialData ? 'aggiornato' : 'aggiunto'} con successo.`,
