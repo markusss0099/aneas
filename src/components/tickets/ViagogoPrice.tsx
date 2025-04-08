@@ -94,7 +94,7 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
         {error && (
           <Button 
             variant="ghost" 
-            size="xs" 
+            size="sm"  // Changed from "xs" to "sm"
             className="h-6 px-2 text-xs"
             onClick={() => setRetryCount(prev => prev + 1)}
           >
