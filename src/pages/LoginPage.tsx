@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, LogIn } from 'lucide-react';
 import { login, isAuthenticated } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
-import { toast } from '@/components/ui/sonner';
+import { toast } from '@/hooks/use-toast'; // Update import here
 import { supabase } from '@/integrations/supabase/client';
 
 const LoginPage = () => {
