@@ -11,7 +11,7 @@ import {
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
 import { useQuery } from '@tanstack/react-query';
@@ -61,10 +61,11 @@ const TicketsPage = () => {
   // Combined loading state
   const isPageLoading = isLoading || isProcessing;
 
-  // Wrapper for handleAddTicket to ensure we track the submission
-  const submitAddTicket = (data) => {
-    debugLog('Submitting add ticket', data);
-    handleAddTicket(data);
+  const closeAddDialog = () => {
+    // Only close the dialog if we're not in the middle of processing
+    if (!addTicketMutation.isPending) {
+      setIsAddDialogOpen(false);
+    }
   };
 
   return (
@@ -122,15 +123,15 @@ const TicketsPage = () => {
       {/* Dialog per aggiungere un nuovo biglietto */}
       {isMobile ? (
         <Drawer open={isAddDialogOpen} onOpenChange={(open) => {
-          if (!isPageLoading) setIsAddDialogOpen(open);
+          if (!addTicketMutation.isPending) setIsAddDialogOpen(open);
         }}>
           <DrawerContent className="px-4 pb-6 pt-2 max-h-[85vh]">
             <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
             <h3 className="font-semibold text-lg pt-2 pb-4">Aggiungi Nuovo Biglietto</h3>
             <ScrollArea className="h-[calc(80vh-80px)] pr-4">
               <TicketForm
-                onSubmit={submitAddTicket}
-                onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
+                onSubmit={handleAddTicket}
+                onCancel={closeAddDialog}
                 isLoading={addTicketMutation.isPending}
               />
             </ScrollArea>
@@ -138,15 +139,15 @@ const TicketsPage = () => {
         </Drawer>
       ) : (
         <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-          if (!isPageLoading) setIsAddDialogOpen(open);
+          if (!addTicketMutation.isPending) setIsAddDialogOpen(open);
         }}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
             </DialogHeader>
             <TicketForm
-              onSubmit={submitAddTicket}
-              onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
+              onSubmit={handleAddTicket}
+              onCancel={closeAddDialog}
               isLoading={addTicketMutation.isPending}
             />
           </DialogContent>

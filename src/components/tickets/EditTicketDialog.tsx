@@ -36,13 +36,19 @@ const EditTicketDialog = ({
     return null;
   }
 
+  // Funzione per gestire il cambio dello stato del dialog
+  const handleOpenChange = (open: boolean) => {
+    // Permettiamo di chiudere il dialog solo se non stiamo caricando
+    if (!isLoading) {
+      setIsOpen(open);
+    }
+  };
+
   if (isMobile) {
     return (
       <Drawer 
         open={isOpen} 
-        onOpenChange={(open) => {
-          if (!isLoading) setIsOpen(open);
-        }}
+        onOpenChange={handleOpenChange}
       >
         <DrawerContent className="px-4 pb-6 pt-2 max-h-[85vh]">
           <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
@@ -63,9 +69,7 @@ const EditTicketDialog = ({
   return (
     <Dialog 
       open={isOpen} 
-      onOpenChange={(open) => {
-        if (!isLoading) setIsOpen(open);
-      }}
+      onOpenChange={handleOpenChange}
     >
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>

@@ -12,7 +12,6 @@ export const useTicketActions = () => {
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -147,7 +146,6 @@ export const useTicketActions = () => {
     deletingTicketId,
     isEditDialogOpen,
     isDeleteDialogOpen,
-    isLoading,
     handleEdit,
     handleDelete,
     handleEditCancel,

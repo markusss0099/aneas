@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +26,6 @@ import {
 } from '@/components/ui/form';
 import { Ticket } from '@/types';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   eventName: z.string().min(3, { message: 'Il nome evento deve contenere almeno 3 caratteri' }),
@@ -50,8 +50,6 @@ interface TicketFormProps {
 }
 
 const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: TicketFormProps) => {
-  const { toast } = useToast();
-  
   // Calcola la data di pagamento prevista (7 giorni dopo la data dell'evento)
   const calculateExpectedPaymentDate = (eventDate: Date): Date => {
     return addDays(eventDate, 7);
@@ -88,10 +86,7 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
 
   const handleSubmit = (data: FormData) => {
     onSubmit(data as Omit<Ticket, 'id'>);
-    toast({
-      title: initialData ? 'Biglietto aggiornato' : 'Biglietto aggiunto',
-      description: `Il biglietto è stato ${initialData ? 'aggiornato' : 'aggiunto'} con successo.`,
-    });
+    // Rimosso il toast da qui, verrà mostrato nel componente principale
   };
 
   return (
