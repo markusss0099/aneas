@@ -17,10 +17,12 @@ import { getTickets } from '@/services/ticket';
 import { useTicketActions } from '@/hooks/useTicketActions';
 import { debugLog } from '@/lib/debugUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const TicketsPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const { 
     handleAddTicket, 
     handleUpdateTicket, 
@@ -73,7 +75,7 @@ const TicketsPage = () => {
           </p>
         </div>
         <Button
-          className="mt-4 md:mt-0"
+          className="mt-4 md:mt-0 w-full md:w-auto"
           onClick={() => setIsAddDialogOpen(true)}
           disabled={isPageLoading}
         >
@@ -98,7 +100,7 @@ const TicketsPage = () => {
             Visualizza e gestisci tutti i biglietti registrati
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className={isMobile ? "p-2 sm:p-6" : "p-6"}>
           <TicketList 
             tickets={tickets}
             onUpdateTicket={handleUpdateTicket}
@@ -112,7 +114,7 @@ const TicketsPage = () => {
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
         if (!isPageLoading) setIsAddDialogOpen(open);
       }}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className={isMobile ? "w-[calc(100%-32px)] max-w-[600px] p-4" : "sm:max-w-[600px]"}>
           <DialogHeader>
             <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
           </DialogHeader>

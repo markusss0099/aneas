@@ -8,6 +8,8 @@ import EditTicketDialog from './EditTicketDialog';
 import DeleteTicketDialog from './DeleteTicketDialog';
 import { debugLog } from '@/lib/debugUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -24,6 +26,7 @@ const TicketList = ({
 }: TicketListProps) => {
   const [search, setSearch] = useState('');
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const {
     editingTicket,
     deletingTicketId,
@@ -93,13 +96,27 @@ const TicketList = ({
         isLoading={isProcessingAll} 
       />
 
-      <TicketTable 
-        tickets={tickets}
-        filteredTickets={filteredTickets}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        isLoading={isProcessingAll}
-      />
+      {isMobile ? (
+        <ScrollArea className="w-full overflow-auto">
+          <div className="min-w-full">
+            <TicketTable 
+              tickets={tickets}
+              filteredTickets={filteredTickets}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              isLoading={isProcessingAll}
+            />
+          </div>
+        </ScrollArea>
+      ) : (
+        <TicketTable 
+          tickets={tickets}
+          filteredTickets={filteredTickets}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          isLoading={isProcessingAll}
+        />
+      )}
 
       <EditTicketDialog 
         isOpen={isEditDialogOpen}
