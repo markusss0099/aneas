@@ -2,6 +2,7 @@
 import React from 'react';
 import Navbar from './Navbar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -28,7 +29,3 @@ const Layout = ({ children }: LayoutProps) => {
 };
 
 export default Layout;
-
-// Utility function per condizioni e classi
-const cn = (...classes: (string | boolean | undefined)[]) => 
-  classes.filter(Boolean).join(' ');
