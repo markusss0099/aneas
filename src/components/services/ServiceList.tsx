@@ -65,7 +65,8 @@ const ServiceList = ({ services, onDelete, onUpdate, isLoading = false }: Servic
     if (deletingService && !isProcessing) {
       setLocalLoading(true);
       try {
-        onDelete(deletingService.id);
+        // Ensure we're passing a string ID to onDelete
+        onDelete(deletingService.id.toString());
         setDeletingService(null);
       } finally {
         // Delay setting loading to false to ensure UI updates properly

@@ -56,7 +56,7 @@ export const useServiceActions = () => {
     }
   });
   
-  // Mutation for deleting a service
+  // Mutation for deleting a service - ensure the id is always a string
   const deleteServiceMutation = useMutation({
     mutationFn: (id: string) => deleteService(id),
     onSuccess: () => {
@@ -86,6 +86,7 @@ export const useServiceActions = () => {
     updateServiceMutation.mutate(updatedService);
   }, [updateServiceMutation]);
   
+  // Ensure id is always a string when calling deleteService
   const handleDeleteService = useCallback((id: string) => {
     deleteServiceMutation.mutate(id);
   }, [deleteServiceMutation]);
