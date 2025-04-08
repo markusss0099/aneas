@@ -49,7 +49,8 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
       ticketPrice: parseFloat(String(data.ticket_price)),
       additionalCosts: parseFloat(String(data.additional_costs)),
       expectedRevenue: parseFloat(String(data.expected_revenue)),
-      notes: data.notes || undefined
+      notes: data.notes || undefined,
+      viagogoLink: data.viagogo_link || undefined
     };
     
     debugLog('Added new ticket', newTicket);
@@ -100,6 +101,8 @@ export const updateTicket = async (updatedTicket: Ticket): Promise<void> => {
       ...ticketToSupabase(updatedTicket),
       user_id
     };
+    
+    debugLog('Updating ticket with data', ticketData);
     
     const { error } = await supabase
       .from('tickets')
