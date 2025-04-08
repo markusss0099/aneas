@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { debugLog } from '@/lib/debugUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ViagogoPriceProps {
   link?: string;
@@ -23,9 +24,30 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
         // Create a URL object to ensure we're working with a proper URL
         const viagogoUrl = new URL(url);
         
-        // Call the Supabase Edge Function to fetch the page content
-        // This would need to be implemented as a serverless function
-        // For now, we'll continue to use our fallback extraction method
+        // First try to use the Edge Function to fetch and parse the page
+        try {
+          debugLog('Calling viagogo-price Edge Function with URL:', url);
+          const { data, error } = await supabase.functions.invoke('viagogo-price', {
+            body: { url }
+          });
+          
+          if (error) {
+            debugLog('Edge Function error:', error);
+            throw error;
+          }
+          
+          if (data && data.price) {
+            debugLog('Extracted price from Edge Function:', data.price);
+            setPrice(data.price);
+            setIsLoading(false);
+            return;
+          } else {
+            debugLog('Edge Function did not return a price, falling back to URL parsing');
+          }
+        } catch (functionError) {
+          debugLog('Error calling viagogo-price Edge Function:', functionError);
+          // Continue with fallback method
+        }
         
         // Fallback: Extract price from URL or parts of the URL
         const pricePattern = /€(\d+(?:\.\d+)?)/i;
