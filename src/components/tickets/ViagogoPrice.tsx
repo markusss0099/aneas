@@ -45,8 +45,14 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
       if (data.price) {
         setPrice(data.price);
       } else if (data.error) {
-        // Handle specific error types
-        if (data.error.includes('consent')) {
+        // Check if it's a connection error
+        if (data.error.includes('error sending request for url')) {
+          // Fallback to generated price on connection error
+          const generatedPrice = generatePriceFromLink(link);
+          setPrice(generatedPrice);
+          // Still set an error so the user knows it's estimated
+          setError('Using estimated price');
+        } else if (data.error.includes('consent')) {
           setError('Consent required');
         } else {
           setError(`${data.error}`);
@@ -59,7 +65,7 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
       console.error('Error fetching Viagogo price:', err);
       // Fallback to generated price on error
       setPrice(generatePriceFromLink(link));
-      setError('Error fetching price');
+      setError('Using estimated price');
     } finally {
       setIsLoading(false);
     }
@@ -85,16 +91,18 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
   return (
     <div className="flex items-center">
       {price ? (
-        <span className="font-medium text-green-600">{price}</span>
+        <span className={error ? "font-medium text-amber-500" : "font-medium text-green-600"}>
+          {price} {error ? "(est.)" : ""}
+        </span>
       ) : (
         <span className="text-amber-500">{error || 'Price unavailable'}</span>
       )}
       
       <div className="flex ml-2 space-x-2">
-        {error && (
+        {(error || price) && (
           <Button 
             variant="ghost" 
-            size="sm"  // Changed from "xs" to "sm"
+            size="sm"
             className="h-6 px-2 text-xs"
             onClick={() => setRetryCount(prev => prev + 1)}
           >
