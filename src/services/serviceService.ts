@@ -1,4 +1,3 @@
-
 import { Service } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog } from '@/lib/debugUtils';
@@ -181,26 +180,27 @@ export const updateService = async (service: Service): Promise<void> => {
 };
 
 // Delete service - ensure id is always a string
-export const deleteService = async (id: string): Promise<void> => {
+export const deleteService = async (id: string) => {
   try {
-    // Ottieni l'utente corrente
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError || !userData.user) {
       throw new Error("Utente non autenticato");
     }
-
+    
+    // Convert id to string if it's a number
+    const serviceId = typeof id === 'number' ? id.toString() : id;
+    
     const { error } = await supabase
       .from('services')
       .delete()
-      .eq('id', id)
+      .eq('id', serviceId)
       .eq('user_id', userData.user.id);
-
+    
     if (error) {
-      debugLog('Error deleting service', error);
-      throw error;
+      throw new Error(`Errore nell'eliminazione del servizio: ${error.message}`);
     }
   } catch (error) {
-    debugLog('Exception deleting service', error);
+    console.error("Errore nell'eliminare il servizio:", error);
     throw error;
   }
 };

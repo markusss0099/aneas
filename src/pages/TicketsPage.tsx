@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -47,8 +47,21 @@ const TicketsPage = () => {
     }
   }, [error, toast]);
 
+  // Monitor addTicketMutation success to close the dialog
+  useEffect(() => {
+    if (addTicketMutation.isSuccess) {
+      setIsAddDialogOpen(false);
+    }
+  }, [addTicketMutation.isSuccess]);
+
   // Combined loading state
   const isPageLoading = isLoading || isProcessing;
+
+  // Wrapper for handleAddTicket to ensure we track the submission
+  const submitAddTicket = (data) => {
+    debugLog('Submitting add ticket', data);
+    handleAddTicket(data);
+  };
 
   return (
     <div className="animate-in space-y-6">
@@ -104,7 +117,7 @@ const TicketsPage = () => {
             <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
           </DialogHeader>
           <TicketForm
-            onSubmit={handleAddTicket}
+            onSubmit={submitAddTicket}
             onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
             isLoading={addTicketMutation.isPending}
           />
