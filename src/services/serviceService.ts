@@ -113,7 +113,7 @@ export const deleteService = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('services')
     .delete()
-    .eq('id', id)  // Ensure id is always passed as a string
+    .eq('id', id)
     .eq('user_id', userData.user.id);
   
   if (error) {
