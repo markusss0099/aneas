@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -253,6 +252,9 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
                 <FormControl>
                   <Input type="number" step="0.01" min="0" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Prezzo per singolo biglietto
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -267,6 +269,9 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
                 <FormControl>
                   <Input type="number" step="0.01" min="0" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Costi aggiuntivi per singolo biglietto
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -277,10 +282,13 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
             name="expectedRevenue"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ricavi Attesi (€)</FormLabel>
+                <FormLabel>Ricavi Attesi Totali (€)</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" min="0" {...field} />
                 </FormControl>
+                <FormDescription>
+                  Ricavo totale atteso (non per biglietto)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -6,17 +6,18 @@ export const calculateTicketTotalCost = (ticket: Ticket): number => {
   return (ticket.ticketPrice + ticket.additionalCosts) * ticket.quantity;
 };
 
-// Calcola il ricavo totale per un singolo biglietto (considerando la quantità)
+// Calcola il ricavo totale
+// Importante: expectedRevenue è già il valore totale, non va moltiplicato per la quantità
 export const calculateTicketTotalRevenue = (ticket: Ticket): number => {
-  return ticket.expectedRevenue * ticket.quantity;
+  return ticket.expectedRevenue;
 };
 
-// Calcola il profitto per un singolo biglietto (considerando la quantità)
+// Calcola il profitto per un biglietto (considerando la quantità per i costi)
 export const calculateTicketProfit = (ticket: Ticket): number => {
   return calculateTicketTotalRevenue(ticket) - calculateTicketTotalCost(ticket);
 };
 
-// Calcola il margine percentuale per un singolo biglietto
+// Calcola il margine percentuale
 export const calculateTicketMargin = (ticket: Ticket): number => {
   const totalCost = calculateTicketTotalCost(ticket);
   const totalRevenue = calculateTicketTotalRevenue(ticket);
