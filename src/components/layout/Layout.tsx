@@ -13,17 +13,20 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {!isMobile && <Navbar />}
-      
       <main className={cn(
-        "flex-1 min-h-screen",
-        isMobile ? "w-full pt-14" : "ml-64"
+        "flex-1 min-h-screen w-full",
+        isMobile ? "pt-0" : "ml-64"
       )}>
         {isMobile && <Navbar />}
-        <div className="container mx-auto p-6">
+        <div className={cn(
+          "container mx-auto p-6",
+          isMobile && "p-2"
+        )}>
           {children}
         </div>
       </main>
+      
+      {!isMobile && <Navbar />}
     </div>
   );
 };

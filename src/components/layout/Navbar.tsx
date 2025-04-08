@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -60,44 +61,34 @@ const Navbar = () => {
 
   if (isMobile) {
     return (
-      <div className="sticky top-0 z-40 w-full bg-background border-b flex items-center justify-end h-14 px-4">
-        <Drawer direction="left" open={isOpen} onOpenChange={setIsOpen}>
-          <DrawerTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              aria-label="Apri menu"
-              className="h-8 w-8"
-            >
-              <Menu size={20} />
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="w-[75%] h-full max-w-[300px] p-0 rounded-none border-r">
-            <div className="flex flex-col h-full">
-              <div className="p-4 border-b">
-                <div className="font-semibold text-lg">Cashflow Manager</div>
-                <DrawerClose className="absolute right-4 top-4">
-                  <Button variant="ghost" size="icon">
-                    <X size={18} />
-                  </Button>
-                </DrawerClose>
-              </div>
-              <nav className="flex flex-col p-4 space-y-1 flex-1">
-                {navItems.map((item) => (
-                  <NavItem 
-                    key={item.to} 
-                    {...item} 
-                    onClick={closeMenu} 
-                  />
-                ))}
-              </nav>
-              <div className="mt-auto border-t">
-                <UserMenu />
-              </div>
+      <Drawer direction="left" open={isOpen} onOpenChange={setIsOpen}>
+        <DrawerTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            aria-label="Apri menu"
+            className="fixed top-4 left-4 z-50 h-8 w-8"
+          >
+            <Menu size={20} />
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="w-[75%] h-full max-w-[300px] p-0 rounded-none border-r">
+          <div className="flex flex-col h-full">
+            <nav className="flex flex-col p-4 space-y-1 flex-1">
+              {navItems.map((item) => (
+                <NavItem 
+                  key={item.to} 
+                  {...item} 
+                  onClick={closeMenu} 
+                />
+              ))}
+            </nav>
+            <div className="mt-auto border-t">
+              <UserMenu />
             </div>
-          </DrawerContent>
-        </Drawer>
-      </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     );
   }
 
