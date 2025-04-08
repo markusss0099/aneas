@@ -8,8 +8,10 @@ import { getTickets } from './ticketStorage';
 import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit } from './ticketCalculations';
 
 // Ottieni il sommario finanziario
-export const getFinancialSummary = (): FinancialSummary => {
-  const tickets = getTickets();
+export const getFinancialSummary = async (): Promise<FinancialSummary> => {
+  const tickets = await getTickets();
+  const services = await getServices();
+  const totalServiceRevenue = await getTotalServiceRevenue();
   
   const totalTickets = tickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
   const totalInvested = tickets.reduce((sum, ticket) => 
@@ -19,10 +21,9 @@ export const getFinancialSummary = (): FinancialSummary => {
   const totalProfit = totalRevenue - totalInvested;
   const profitMargin = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
   
-  const totalServices = getServices().length;
-  const totalServiceRevenue = getTotalServiceRevenue();
+  const totalServices = services.length;
   
-  const summary = {
+  const summary: FinancialSummary = {
     totalTickets,
     totalInvested,
     totalRevenue,
@@ -37,8 +38,8 @@ export const getFinancialSummary = (): FinancialSummary => {
 };
 
 // Ottieni i dati del cashflow per periodo
-export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
-  const tickets = getTickets();
+export const getCashflowByPeriod = async (period: Period): Promise<CashflowByPeriod[]> => {
+  const tickets = await getTickets();
   const result: Record<string, CashflowByPeriod> = {};
   
   const getPeriodStart = (date: Date): Date => {
@@ -99,7 +100,7 @@ export const getCashflowByPeriod = (period: Period): CashflowByPeriod[] => {
     result[paymentPeriod].profit += calculateTicketProfit(ticket);
   });
   
-  const serviceRevenueByPeriod = getServiceRevenueByPeriod(period);
+  const serviceRevenueByPeriod = await getServiceRevenueByPeriod(period);
   
   Object.entries(serviceRevenueByPeriod).forEach(([periodKey, revenue]) => {
     if (!result[periodKey]) {

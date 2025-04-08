@@ -22,10 +22,15 @@ const DebugPanel: React.FC = () => {
     setDebugEnabled(newState);
   };
 
-  const refreshData = () => {
-    const ticketData = getTickets();
-    setTickets(ticketData);
-    debugLog('Refreshed debug data', ticketData);
+  const refreshData = async () => {
+    try {
+      const ticketData = await getTickets();
+      setTickets(ticketData);
+      debugLog('Refreshed debug data', ticketData);
+    } catch (error) {
+      console.error('Error refreshing data', error);
+      debugLog('Error refreshing data', error);
+    }
   };
 
   if (!showPanel) {

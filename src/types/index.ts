@@ -39,3 +39,8 @@ export interface CashflowByPeriod {
 }
 
 export type Period = 'week' | 'month' | 'quarter' | 'year';
+
+export interface User {
+  id: string;
+  username: string;
+}

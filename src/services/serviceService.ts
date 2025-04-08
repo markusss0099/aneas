@@ -50,9 +50,21 @@ const serviceToSupabase = (service: Service): any => {
 
 // Aggiungi un nuovo servizio
 export const addService = async (service: Omit<Service, 'id'>): Promise<Service> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user_id = userData.user?.id;
+  
+  if (!user_id) {
+    throw new Error("Utente non autenticato");
+  }
+  
+  const serviceData = {
+    ...serviceToSupabase(service as Service),
+    user_id
+  };
+  
   const { data, error } = await supabase
     .from('services')
-    .insert([serviceToSupabase(service as Service)])
+    .insert([serviceData])
     .select()
     .single();
   
@@ -63,7 +75,7 @@ export const addService = async (service: Omit<Service, 'id'>): Promise<Service>
   
   const newService: Service = {
     ...service,
-    id: data.id,
+    id: data?.id || '',
   };
   
   debugLog('Added new service', newService);
@@ -87,9 +99,21 @@ export const deleteService = async (id: string): Promise<void> => {
 
 // Aggiorna un servizio esistente
 export const updateService = async (updatedService: Service): Promise<void> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user_id = userData.user?.id;
+  
+  if (!user_id) {
+    throw new Error("Utente non autenticato");
+  }
+  
+  const serviceData = {
+    ...serviceToSupabase(updatedService),
+    user_id
+  };
+  
   const { error } = await supabase
     .from('services')
-    .update(serviceToSupabase(updatedService))
+    .update(serviceData)
     .eq('id', updatedService.id);
   
   if (error) {

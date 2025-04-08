@@ -59,5 +59,6 @@ export const ticketToSupabase = (ticket: Ticket): any => {
     additional_costs: ticket.additionalCosts,
     expected_revenue: ticket.expectedRevenue,
     notes: ticket.notes || null,
+    user_id: supabase.auth.getUser().then(({ data }) => data.user?.id)
   };
 };

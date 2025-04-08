@@ -6,9 +6,21 @@ import { debugLog } from '@/lib/debugUtils';
 
 // Aggiungi un nuovo biglietto
 export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user_id = userData.user?.id;
+  
+  if (!user_id) {
+    throw new Error("Utente non autenticato");
+  }
+  
+  const ticketData = {
+    ...ticketToSupabase(ticket as Ticket),
+    user_id
+  };
+  
   const { data, error } = await supabase
     .from('tickets')
-    .insert([ticketToSupabase(ticket as Ticket)])
+    .insert([ticketData])
     .select()
     .single();
   
@@ -20,7 +32,7 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
   // Converti il risultato nel formato Ticket
   const newTicket: Ticket = {
     ...ticket,
-    id: data.id,
+    id: data?.id || '',
   };
   
   debugLog('Added new ticket', newTicket);
@@ -44,9 +56,21 @@ export const deleteTicket = async (id: string): Promise<void> => {
 
 // Aggiorna un biglietto esistente
 export const updateTicket = async (updatedTicket: Ticket): Promise<void> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user_id = userData.user?.id;
+  
+  if (!user_id) {
+    throw new Error("Utente non autenticato");
+  }
+  
+  const ticketData = {
+    ...ticketToSupabase(updatedTicket),
+    user_id
+  };
+  
   const { error } = await supabase
     .from('tickets')
-    .update(ticketToSupabase(updatedTicket))
+    .update(ticketData)
     .eq('id', updatedTicket.id);
   
   if (error) {
