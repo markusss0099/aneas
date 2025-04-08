@@ -69,38 +69,45 @@ const TicketsPage = () => {
     <div className="animate-in space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Gestione Biglietti</h1>
-          <p className="text-muted-foreground">
-            Inserisci e gestisci i tuoi biglietti per eventi
-          </p>
+          <h1 className={`text-2xl md:text-3xl font-bold ${isMobile ? "mb-1" : ""}`}>
+            {isMobile ? "Biglietti" : "Gestione Biglietti"}
+          </h1>
+          {!isMobile && (
+            <p className="text-muted-foreground">
+              Inserisci e gestisci i tuoi biglietti per eventi
+            </p>
+          )}
         </div>
         <Button
-          className="mt-4 md:mt-0 w-full md:w-auto"
+          className="mt-3 md:mt-0 w-full md:w-auto"
           onClick={() => setIsAddDialogOpen(true)}
           disabled={isPageLoading}
+          size={isMobile ? "sm" : "default"}
         >
           {isPageLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Elaborazione...
+              {isMobile ? "Caricamento..." : "Elaborazione..."}
             </>
           ) : (
             <>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Nuovo Biglietto
+              {isMobile ? "Nuovo" : "Nuovo Biglietto"}
             </>
           )}
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Elenco Biglietti</CardTitle>
-          <CardDescription>
-            Visualizza e gestisci tutti i biglietti registrati
-          </CardDescription>
-        </CardHeader>
-        <CardContent className={isMobile ? "p-2 sm:p-6" : "p-6"}>
+      <Card className={isMobile ? "shadow-sm border-0 shadow-none" : ""}>
+        {!isMobile && (
+          <CardHeader>
+            <CardTitle>Elenco Biglietti</CardTitle>
+            <CardDescription>
+              Visualizza e gestisci tutti i biglietti registrati
+            </CardDescription>
+          </CardHeader>
+        )}
+        <CardContent className={isMobile ? "p-0 sm:p-6" : "p-6"}>
           <TicketList 
             tickets={tickets}
             onUpdateTicket={handleUpdateTicket}

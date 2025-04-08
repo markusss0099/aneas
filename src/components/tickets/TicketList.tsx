@@ -93,21 +93,21 @@ const TicketList = ({
       <TicketSearch 
         search={search} 
         setSearch={setSearch} 
-        isLoading={isProcessingAll} 
+        isLoading={isProcessingAll}
+        isMobile={isMobile}
       />
 
       {isMobile ? (
-        <ScrollArea className="w-full overflow-auto">
-          <div className="min-w-full">
-            <TicketTable 
-              tickets={tickets}
-              filteredTickets={filteredTickets}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isLoading={isProcessingAll}
-            />
-          </div>
-        </ScrollArea>
+        <div className="w-full overflow-auto -mx-0">
+          <TicketTable 
+            tickets={tickets}
+            filteredTickets={filteredTickets}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            isLoading={isProcessingAll}
+            isMobile={true}
+          />
+        </div>
       ) : (
         <TicketTable 
           tickets={tickets}

@@ -52,15 +52,15 @@ const TicketTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className={isMobile ? "px-2 py-2" : ""}>Evento</TableHead>
-            <TableHead className={isMobile ? "px-2 py-2" : ""}>Data</TableHead>
+            <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Evento</TableHead>
+            <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Data</TableHead>
             {!isMobile && <TableHead>Quantità</TableHead>}
             {!isMobile && <TableHead>Ricavi</TableHead>}
             {!isMobile && <TableHead>Costi</TableHead>}
-            <TableHead className={isMobile ? "px-2 py-2" : ""}>Profitto</TableHead>
+            <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Profitto</TableHead>
             {!isMobile && <TableHead>Margine</TableHead>}
             {!isMobile && <TableHead>Viagogo</TableHead>}
-            <TableHead className={`text-right ${isMobile ? "px-2 py-2" : ""}`}>Azioni</TableHead>
+            <TableHead className={`text-right ${isMobile ? "px-2 py-2 text-xs" : ""}`}>Azioni</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
