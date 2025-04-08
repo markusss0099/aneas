@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/card';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import TicketList from '@/components/tickets/TicketList';
 import TicketForm from '@/components/tickets/TicketForm';
 import { useQuery } from '@tanstack/react-query';
@@ -118,20 +120,38 @@ const TicketsPage = () => {
       </Card>
 
       {/* Dialog per aggiungere un nuovo biglietto */}
-      <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-        if (!isPageLoading) setIsAddDialogOpen(open);
-      }}>
-        <DialogContent className={isMobile ? "w-[calc(100%-32px)] max-w-[600px] p-4" : "sm:max-w-[600px]"}>
-          <DialogHeader>
-            <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
-          </DialogHeader>
-          <TicketForm
-            onSubmit={submitAddTicket}
-            onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
-            isLoading={addTicketMutation.isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      {isMobile ? (
+        <Drawer open={isAddDialogOpen} onOpenChange={(open) => {
+          if (!isPageLoading) setIsAddDialogOpen(open);
+        }}>
+          <DrawerContent className="px-4 pb-6 pt-2 max-h-[85vh]">
+            <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+            <h3 className="font-semibold text-lg pt-2 pb-4">Aggiungi Nuovo Biglietto</h3>
+            <ScrollArea className="h-[calc(80vh-80px)] pr-4">
+              <TicketForm
+                onSubmit={submitAddTicket}
+                onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
+                isLoading={addTicketMutation.isPending}
+              />
+            </ScrollArea>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+          if (!isPageLoading) setIsAddDialogOpen(open);
+        }}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
+            </DialogHeader>
+            <TicketForm
+              onSubmit={submitAddTicket}
+              onCancel={() => !isPageLoading && setIsAddDialogOpen(false)}
+              isLoading={addTicketMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

@@ -31,7 +31,17 @@ const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: Ti
       <TableCell className={isMobile ? "px-2 py-2 text-xs truncate whitespace-nowrap" : ""}>
         {formatDate(new Date(ticket.eventDate))}
       </TableCell>
+      {isMobile && (
+        <TableCell className="px-2 py-2 text-xs">
+          {ticket.quantity}
+        </TableCell>
+      )}
       {!isMobile && <TableCell>{ticket.quantity}</TableCell>}
+      {isMobile && (
+        <TableCell className="px-2 py-2 text-xs">
+          {formatCurrency(totalCost)}
+        </TableCell>
+      )}
       {!isMobile && <TableCell>{formatCurrency(ticket.expectedRevenue)}</TableCell>}
       {!isMobile && <TableCell>{formatCurrency(totalCost)}</TableCell>}
       <TableCell className={isMobile ? "px-2 py-2 text-xs font-semibold" : ""}>

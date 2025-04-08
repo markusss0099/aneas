@@ -54,7 +54,9 @@ const TicketTable = ({
           <TableRow>
             <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Evento</TableHead>
             <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Data</TableHead>
+            {isMobile && <TableHead className="px-2 py-2 text-xs">Qtà</TableHead>}
             {!isMobile && <TableHead>Quantità</TableHead>}
+            {isMobile && <TableHead className="px-2 py-2 text-xs">Costo</TableHead>}
             {!isMobile && <TableHead>Ricavi</TableHead>}
             {!isMobile && <TableHead>Costi</TableHead>}
             <TableHead className={isMobile ? "px-2 py-2 text-xs" : ""}>Profitto</TableHead>

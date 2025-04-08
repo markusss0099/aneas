@@ -96,26 +96,16 @@ const TicketList = ({
         isMobile={isMobile}
       />
 
-      {isMobile ? (
-        <div className="w-full overflow-auto -mx-0">
-          <TicketTable 
-            tickets={tickets}
-            filteredTickets={filteredTickets}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            isLoading={isProcessingAll}
-            isMobile={true}
-          />
-        </div>
-      ) : (
+      <div className={isMobile ? "w-full overflow-auto -mx-0" : ""}>
         <TicketTable 
           tickets={tickets}
           filteredTickets={filteredTickets}
           onEdit={handleEdit}
           onDelete={handleDelete}
           isLoading={isProcessingAll}
+          isMobile={isMobile}
         />
-      )}
+      </div>
 
       <EditTicketDialog 
         isOpen={isEditDialogOpen}
