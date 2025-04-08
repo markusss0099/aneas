@@ -15,7 +15,7 @@ import {
   Bar,
   Legend
 } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp, Loader2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp, Loader2, AlertCircle } from 'lucide-react';
 import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticket';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -87,6 +87,20 @@ const Dashboard = () => {
       status: summary.totalProfit >= 0 ? 'positive' : 'negative',
     },
     {
+      title: 'Biglietti Non Venduti',
+      value: summary.zeroRevenueTickets,
+      icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
+      description: `Investimento in sospeso: ${formatCurrency(summary.zeroRevenueInvestment)}`,
+      status: 'warning',
+    },
+    {
+      title: 'Profitto Effettivo',
+      value: formatCurrency(summary.actualProfit),
+      icon: <ArrowUpRight className="h-4 w-4 text-success" />,
+      description: 'Solo da biglietti venduti',
+      status: 'positive',
+    },
+    {
       title: 'Servizi Pulling',
       value: summary.totalServices,
       icon: <ArrowUp className="h-4 w-4" />,
@@ -125,7 +139,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card, index) => (
           <Card key={index}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -135,13 +149,21 @@ const Dashboard = () => {
               <div className={cn(
                 "rounded-full p-1",
                 card.status === 'positive' && "text-success",
-                card.status === 'negative' && "text-destructive"
+                card.status === 'negative' && "text-destructive", 
+                card.status === 'warning' && "text-amber-500"
               )}>
                 {card.icon}
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
+              <div className={cn(
+                "text-2xl font-bold",
+                card.status === 'positive' && "text-success",
+                card.status === 'negative' && "text-destructive",
+                card.status === 'warning' && "text-amber-500"
+              )}>
+                {card.value}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {card.description}
               </p>
