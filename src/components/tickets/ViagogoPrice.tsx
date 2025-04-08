@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,13 +8,13 @@ interface ViagogoPriceProps {
   link?: string;
 }
 
-// Improved fallback function to generate more consistent price estimates
+// Improved fallback function to consistently generate prices in the €45-€225 range
 const generatePriceFromLink = (url: string): string => {
   if (!url) return '€0';
   
   // Extract event ID if present (typically after E-)
   const eventIdMatch = url.match(/E-(\d+)/);
-  let basePrice = 100; // Default base price
+  let basePrice = 45; // Start at the minimum price of €45
   
   if (eventIdMatch && eventIdMatch[1]) {
     // Use the event ID to seed a more consistent price
