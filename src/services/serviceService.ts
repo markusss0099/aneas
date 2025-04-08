@@ -1,4 +1,3 @@
-
 import { Service } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog } from '@/lib/debugUtils';
@@ -101,7 +100,7 @@ export const updateService = async (service: Service): Promise<void> => {
   }
 };
 
-// Elimina un servizio
+// Update deleteService to ensure string type for id
 export const deleteService = async (id: string): Promise<void> => {
   // Ottieni l'utente corrente
   const { data: userData, error: userError } = await supabase.auth.getUser();
