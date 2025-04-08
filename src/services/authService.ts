@@ -34,6 +34,21 @@ export const getUserStorageKey = (key: string): string => {
   return `${key}_${user.id}`;
 };
 
+// Genera un ID utente consistente basato su username e password
+const generateConsistentUserId = (username: string, password: string): string => {
+  // Utilizziamo una funzione hash semplice che genera sempre lo stesso ID 
+  // per la stessa combinazione username/password
+  // Nota: Non è sicuro per la produzione, ma adatto per questo esempio
+  let hash = 0;
+  const str = `${username}:${password}`;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Converti in integer a 32 bit
+  }
+  return `user_${Math.abs(hash).toString(16)}`;
+};
+
 // Login semplice con username/password
 export const login = (username: string, password: string): Promise<User> => {
   return new Promise((resolve, reject) => {
@@ -53,10 +68,8 @@ export const login = (username: string, password: string): Promise<User> => {
         return;
       }
       
-      // Genera un ID deterministico basato sull'username e password
-      // In questo modo lo stesso utente avrà sempre lo stesso ID su ogni dispositivo
-      const hash = btoa(`${username}:${password}`);
-      const id = `user_${hash.substring(0, 10)}`;
+      // Genera un ID utente consistente basato su username e password
+      const id = generateConsistentUserId(username, password);
       
       const user: User = {
         id,
@@ -66,6 +79,7 @@ export const login = (username: string, password: string): Promise<User> => {
       // Salva l'utente nel localStorage
       localStorage.setItem(AUTH_KEY, JSON.stringify(user));
       
+      debugLog('Utente loggato', { username, id });
       resolve(user);
     }, 800); // Ritardo di 800ms per simulare una richiesta al server
   });

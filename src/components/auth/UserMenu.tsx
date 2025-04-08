@@ -33,7 +33,7 @@ const UserMenu = () => {
             <Info size={16} className="text-muted-foreground cursor-help" />
           </TooltipTrigger>
           <TooltipContent className="max-w-[250px]">
-            <p>Per accedere agli stessi dati su diversi dispositivi, usa esattamente le stesse credenziali (username e password).</p>
+            <p>Per accedere agli stessi dati su diversi dispositivi, usa esattamente le stesse credenziali (username e password). I tuoi dati saranno disponibili su qualsiasi dispositivo con le stesse credenziali.</p>
           </TooltipContent>
         </Tooltip>
       </div>

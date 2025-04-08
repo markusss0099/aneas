@@ -34,7 +34,7 @@ const LoginPage = () => {
       await login(username, password);
       toast({
         title: "Login effettuato",
-        description: `Benvenuto, ${username}!`,
+        description: `Benvenuto, ${username}! I tuoi dati saranno sincronizzati se usi le stesse credenziali su altri dispositivi.`,
       });
       navigate('/');
     } catch (error) {
@@ -103,9 +103,12 @@ const LoginPage = () => {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex flex-col gap-2">
             <p className="text-sm text-muted-foreground">
               Per questo esempio, puoi usare qualsiasi username e password (min. 4 caratteri)
+            </p>
+            <p className="text-sm font-medium text-primary">
+              Importante: Per accedere agli stessi dati su dispositivi diversi, usa sempre le stesse credenziali!
             </p>
           </CardFooter>
         </Card>
