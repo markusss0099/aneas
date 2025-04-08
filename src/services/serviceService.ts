@@ -3,86 +3,118 @@ import { Service } from '../types';
 import { debugLog } from '@/lib/debugUtils';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { getUserStorageKey } from './authService';
+import { supabase } from '@/integrations/supabase/client';
 
-// Base key for localStorage
-const BASE_STORAGE_KEY = 'cashflow-services';
-
-// Carica i servizi dal localStorage
-export const getServices = (): Service[] => {
-  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
-  const servicesJson = localStorage.getItem(STORAGE_KEY);
-  if (!servicesJson) return [];
-  
+// Carica i servizi da Supabase
+export const getServices = async (): Promise<Service[]> => {
   try {
-    const services = JSON.parse(servicesJson);
+    const { data, error } = await supabase
+      .from('services')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching services from Supabase', error);
+      debugLog('Error loading services', error);
+      return [];
+    }
+    
     // Converti stringhe di date in oggetti Date
-    const parsedServices = services.map((service: any) => ({
-      ...service,
+    const parsedServices = data.map((service: any) => ({
+      id: service.id,
+      name: service.name,
+      revenue: parseFloat(service.revenue),
       date: new Date(service.date),
+      description: service.description,
     }));
     
-    debugLog('Retrieved services from storage', parsedServices);
+    debugLog('Retrieved services from Supabase', parsedServices);
     return parsedServices;
   } catch (error) {
-    console.error('Error parsing services from localStorage', error);
+    console.error('Error parsing services from Supabase', error);
     debugLog('Error loading services', error);
     return [];
   }
 };
 
-// Salva i servizi nel localStorage
-export const saveServices = (services: Service[]): void => {
-  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(services));
-  debugLog('Saved services to storage', services);
+// Converte un Service per l'invio a Supabase
+const serviceToSupabase = (service: Service): any => {
+  return {
+    id: service.id,
+    name: service.name,
+    revenue: service.revenue,
+    date: service.date.toISOString(),
+    description: service.description || null,
+  };
 };
 
 // Aggiungi un nuovo servizio
-export const addService = (service: Omit<Service, 'id'>): Service => {
-  const services = getServices();
-  const newService = {
+export const addService = async (service: Omit<Service, 'id'>): Promise<Service> => {
+  const { data, error } = await supabase
+    .from('services')
+    .insert([serviceToSupabase(service as Service)])
+    .select()
+    .single();
+  
+  if (error) {
+    debugLog('Error adding service', error);
+    throw new Error(`Errore nell'aggiunta del servizio: ${error.message}`);
+  }
+  
+  const newService: Service = {
     ...service,
-    id: Date.now().toString(),
+    id: data.id,
   };
   
-  saveServices([...services, newService]);
   debugLog('Added new service', newService);
   return newService;
 };
 
 // Elimina un servizio
-export const deleteService = (id: string): void => {
-  const services = getServices();
-  const updatedServices = services.filter((service) => service.id !== id);
-  saveServices(updatedServices);
+export const deleteService = async (id: string): Promise<void> => {
+  const { error } = await supabase
+    .from('services')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    debugLog('Error deleting service', error);
+    throw new Error(`Errore nell'eliminazione del servizio: ${error.message}`);
+  }
+  
   debugLog('Deleted service', { id });
 };
 
 // Aggiorna un servizio esistente
-export const updateService = (updatedService: Service): void => {
-  const services = getServices();
-  const updatedServices = services.map((service) => 
-    service.id === updatedService.id ? updatedService : service
-  );
-  saveServices(updatedServices);
+export const updateService = async (updatedService: Service): Promise<void> => {
+  const { error } = await supabase
+    .from('services')
+    .update(serviceToSupabase(updatedService))
+    .eq('id', updatedService.id);
+  
+  if (error) {
+    debugLog('Error updating service', error);
+    throw new Error(`Errore nell'aggiornamento del servizio: ${error.message}`);
+  }
+  
   debugLog('Updated service', updatedService);
 };
 
 // Calcola il totale dei ricavi dai servizi
-export const getTotalServiceRevenue = (): number => {
-  const services = getServices();
+export const getTotalServiceRevenue = async (): Promise<number> => {
+  const services = await getServices();
   return services.reduce((sum, service) => sum + service.revenue, 0);
 };
 
 // Ottieni il numero totale di servizi
-export const getTotalServices = (): number => {
-  return getServices().length;
+export const getTotalServices = async (): Promise<number> => {
+  const services = await getServices();
+  return services.length;
 };
 
 // Ottieni i ricavi dei servizi per periodo
-export const getServiceRevenueByPeriod = (period: 'week' | 'month' | 'quarter' | 'year'): Record<string, number> => {
-  const services = getServices();
+export const getServiceRevenueByPeriod = async (period: 'week' | 'month' | 'quarter' | 'year'): Promise<Record<string, number>> => {
+  const services = await getServices();
   const revenueByPeriod: Record<string, number> = {};
   
   // Funzioni di raggruppamento per periodo

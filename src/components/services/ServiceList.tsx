@@ -28,47 +28,61 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Loader2 } from 'lucide-react';
 import ServiceForm from './ServiceForm';
 
 interface ServiceListProps {
   services: Service[];
   onDelete: (id: string) => void;
   onUpdate: (service: Service) => void;
+  isLoading?: boolean;
 }
 
-const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
+const ServiceList = ({ services, onDelete, onUpdate, isLoading = false }: ServiceListProps) => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deletingService, setDeletingService] = useState<Service | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+
+  // Combined loading state
+  const isProcessing = isLoading || localLoading;
 
   const handleEdit = (service: Service) => {
+    if (isProcessing) return;
     setEditingService(service);
   };
 
   const handleUpdate = (data: Omit<Service, 'id'>) => {
-    if (editingService) {
-      setIsLoading(true);
-      setTimeout(() => {
+    if (editingService && !isProcessing) {
+      setLocalLoading(true);
+      try {
         onUpdate({ ...data, id: editingService.id });
         setEditingService(null);
-        setIsLoading(false);
-      }, 500);
+      } finally {
+        // Delay setting loading to false to ensure UI updates properly
+        setTimeout(() => {
+          setLocalLoading(false);
+        }, 100);
+      }
     }
   };
 
   const handleDelete = (service: Service) => {
+    if (isProcessing) return;
     setDeletingService(service);
   };
 
   const confirmDelete = () => {
-    if (deletingService) {
-      setIsLoading(true);
-      setTimeout(() => {
+    if (deletingService && !isProcessing) {
+      setLocalLoading(true);
+      try {
         onDelete(deletingService.id);
         setDeletingService(null);
-        setIsLoading(false);
-      }, 500);
+      } finally {
+        // Delay setting loading to false to ensure UI updates properly
+        setTimeout(() => {
+          setLocalLoading(false);
+        }, 100);
+      }
     }
   };
 
@@ -82,7 +96,11 @@ const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {services.length === 0 ? (
+          {isProcessing && services.length === 0 ? (
+            <div className="flex justify-center items-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : services.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               Nessun servizio registrato.
             </div>
@@ -112,16 +130,26 @@ const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
                           variant="outline"
                           size="icon"
                           onClick={() => handleEdit(service)}
+                          disabled={isProcessing}
                         >
-                          <Pencil className="h-4 w-4" />
+                          {isProcessing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Pencil className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button
                           variant="outline"
                           size="icon"
                           className="text-destructive"
                           onClick={() => handleDelete(service)}
+                          disabled={isProcessing}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {isProcessing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </TableCell>
@@ -135,7 +163,7 @@ const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
 
       {/* Dialog di Modifica */}
       {editingService && (
-        <AlertDialog open={!!editingService} onOpenChange={() => !isLoading && setEditingService(null)}>
+        <AlertDialog open={!!editingService} onOpenChange={() => !isProcessing && setEditingService(null)}>
           <AlertDialogContent className="sm:max-w-[500px]">
             <AlertDialogHeader>
               <AlertDialogTitle>Modifica Servizio</AlertDialogTitle>
@@ -147,14 +175,14 @@ const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
               initialData={editingService}
               onSubmit={handleUpdate}
               onCancel={() => setEditingService(null)}
-              isLoading={isLoading}
+              isLoading={isProcessing}
             />
           </AlertDialogContent>
         </AlertDialog>
       )}
 
       {/* Dialog di Conferma Eliminazione */}
-      <AlertDialog open={!!deletingService} onOpenChange={() => !isLoading && setDeletingService(null)}>
+      <AlertDialog open={!!deletingService} onOpenChange={() => !isProcessing && setDeletingService(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Conferma Eliminazione</AlertDialogTitle>
@@ -163,9 +191,13 @@ const ServiceList = ({ services, onDelete, onUpdate }: ServiceListProps) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLoading}>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={isLoading}>
-              {isLoading ? 'Eliminazione...' : 'Elimina'}
+            <AlertDialogCancel disabled={isProcessing}>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isProcessing}>
+              {isProcessing ? 
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminazione...
+                </> : 'Elimina'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

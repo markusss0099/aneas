@@ -1,91 +1,80 @@
 
-// Servizio semplice di autenticazione che utilizza localStorage per persistere l'utente
-import { debugLog } from "@/lib/debugUtils";
-
-export interface User {
-  id: string;
-  username: string;
-}
-
-const AUTH_KEY = 'cashflow_auth_user';
+import { supabase } from '@/integrations/supabase/client';
+import { User } from '../types';
+import { debugLog } from '@/lib/debugUtils';
 
 // Controlla se l'utente è autenticato
-export const isAuthenticated = (): boolean => {
-  return localStorage.getItem(AUTH_KEY) !== null;
+export const isAuthenticated = async (): Promise<boolean> => {
+  const { data } = await supabase.auth.getSession();
+  return data.session !== null;
 };
 
 // Ottieni l'utente corrente
-export const getCurrentUser = (): User | null => {
-  const userJson = localStorage.getItem(AUTH_KEY);
-  if (!userJson) return null;
+export const getCurrentUser = async (): Promise<User | null> => {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session) return null;
   
+  return {
+    id: data.session.user.id,
+    username: data.session.user.email || 'Utente',
+  };
+};
+
+// Login con email e password
+export const login = async (username: string, password: string): Promise<User> => {
   try {
-    return JSON.parse(userJson) as User;
-  } catch (error) {
-    debugLog('Errore nel parsing dell\'utente salvato', error);
-    return null;
-  }
-};
-
-// Genera una chiave utente per localStorage
-export const getUserStorageKey = (key: string): string => {
-  const user = getCurrentUser();
-  if (!user) return key;
-  return `${key}_${user.id}`;
-};
-
-// Genera un ID utente consistente basato su username e password
-const generateConsistentUserId = (username: string, password: string): string => {
-  // Utilizziamo una funzione hash semplice che genera sempre lo stesso ID 
-  // per la stessa combinazione username/password
-  // Nota: Non è sicuro per la produzione, ma adatto per questo esempio
-  let hash = 0;
-  const str = `${username}:${password}`;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0; // Converti in integer a 32 bit
-  }
-  return `user_${Math.abs(hash).toString(16)}`;
-};
-
-// Login semplice con username/password
-export const login = (username: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    // Simuliamo un ritardo come per le altre operazioni
-    setTimeout(() => {
-      // Semplice validazione - nella realtà, dovrebbe controllare 
-      // le credenziali con un server
-      if (!username || !password) {
-        reject(new Error('Username e password richiesti'));
-        return;
+    // Proviamo prima a effettuare il login
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+    
+    if (error) {
+      // Se l'utente non esiste, proviamo a registrarlo
+      if (error.message.includes('Invalid login credentials')) {
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: username,
+          password: password,
+        });
+        
+        if (signUpError) {
+          throw new Error(signUpError.message);
+        }
+        
+        // Se l'utente è stato creato correttamente
+        if (signUpData.user) {
+          debugLog('Nuovo utente registrato', { email: username, id: signUpData.user.id });
+          return {
+            id: signUpData.user.id,
+            username: username,
+          };
+        }
       }
       
-      // Per questo esempio, accettiamo qualsiasi username/password 
-      // Se vuoi un controllo più realistico, puoi usare credenziali hardcoded
-      if (password.length < 4) {
-        reject(new Error('La password deve essere di almeno 4 caratteri'));
-        return;
-      }
-      
-      // Genera un ID utente consistente basato su username e password
-      const id = generateConsistentUserId(username, password);
-      
-      const user: User = {
-        id,
-        username
+      throw new Error(error.message);
+    }
+    
+    // Login effettuato con successo
+    if (data.user) {
+      debugLog('Utente loggato', { email: username, id: data.user.id });
+      return {
+        id: data.user.id,
+        username: username,
       };
-      
-      // Salva l'utente nel localStorage
-      localStorage.setItem(AUTH_KEY, JSON.stringify(user));
-      
-      debugLog('Utente loggato', { username, id });
-      resolve(user);
-    }, 800); // Ritardo di 800ms per simulare una richiesta al server
-  });
+    }
+    
+    throw new Error('Login fallito per motivi sconosciuti');
+  } catch (error) {
+    debugLog('Errore nel login', error);
+    throw error;
+  }
 };
 
 // Logout
-export const logout = (): void => {
-  localStorage.removeItem(AUTH_KEY);
+export const logout = async (): Promise<void> => {
+  await supabase.auth.signOut();
+  debugLog('Utente disconnesso');
 };
+
+// Non è più necessario getUserStorageKey poiché utilizziamo il user_id nel database
+// con Row Level Security per filtrare i dati

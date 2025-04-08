@@ -16,108 +16,106 @@ import { Ticket } from '@/types';
 import { addTicket, deleteTicket, getTickets, updateTicket } from '@/services/ticket';
 import { debugLog } from '@/lib/debugUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 
 const TicketsPage = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const refreshTickets = useCallback(() => {
-    try {
-      const loadedTickets = getTickets();
-      setTickets(loadedTickets);
-      debugLog('Tickets refreshed in TicketsPage', loadedTickets);
-    } catch (error) {
-      debugLog('Error refreshing tickets', error);
+  // Utilizzo di React Query per gestire lo stato e il caricamento
+  const { data: tickets = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['tickets'],
+    queryFn: getTickets,
+  });
+
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Errore",
         description: "Errore nel caricamento dei biglietti.",
         variant: "destructive",
       });
+      debugLog('Error fetching tickets', error);
     }
-  }, [toast]);
+  }, [error, toast]);
 
-  useEffect(() => {
-    refreshTickets();
-  }, [refreshTickets]);
+  // Mutation per aggiungere un biglietto
+  const addTicketMutation = useMutation({
+    mutationFn: (newTicket: Omit<Ticket, 'id'>) => addTicket(newTicket),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Biglietto Aggiunto",
+        description: "Il biglietto è stato aggiunto con successo.",
+      });
+    },
+    onError: (error) => {
+      debugLog('Error adding ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiunta del biglietto.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation per aggiornare un biglietto
+  const updateTicketMutation = useMutation({
+    mutationFn: (updatedTicket: Ticket) => updateTicket(updatedTicket),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      toast({
+        title: "Biglietto Aggiornato",
+        description: "Il biglietto è stato aggiornato con successo.",
+      });
+    },
+    onError: (error) => {
+      debugLog('Error updating ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Mutation per eliminare un biglietto
+  const deleteTicketMutation = useMutation({
+    mutationFn: (id: string) => deleteTicket(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      toast({
+        title: "Biglietto Eliminato",
+        description: "Il biglietto è stato eliminato con successo.",
+      });
+    },
+    onError: (error) => {
+      debugLog('Error deleting ticket', error);
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'eliminazione del biglietto.",
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleAddTicket = useCallback((newTicket: Omit<Ticket, 'id'>) => {
-    setIsLoading(true);
-    
-    // Simuliamo un breve ritardo come nella pagina Pulling
-    setTimeout(() => {
-      try {
-        addTicket(newTicket);
-        refreshTickets();
-        setIsAddDialogOpen(false);
-        toast({
-          title: "Biglietto Aggiunto",
-          description: `Biglietto per "${newTicket.eventName}" aggiunto con successo.`,
-        });
-      } catch (error) {
-        debugLog('Error adding ticket', error);
-        toast({
-          title: "Errore",
-          description: "Si è verificato un errore durante l'aggiunta del biglietto.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }, 500);
-  }, [refreshTickets, toast]);
+    addTicketMutation.mutate(newTicket);
+  }, [addTicketMutation]);
 
   const handleUpdateTicket = useCallback((updatedTicket: Ticket) => {
-    setIsLoading(true);
-    
-    // Simuliamo un breve ritardo come nella pagina Pulling
-    setTimeout(() => {
-      try {
-        updateTicket(updatedTicket);
-        refreshTickets();
-        toast({
-          title: "Biglietto Aggiornato",
-          description: `Biglietto per "${updatedTicket.eventName}" aggiornato con successo.`,
-        });
-      } catch (error) {
-        debugLog('Error updating ticket', error);
-        toast({
-          title: "Errore",
-          description: "Si è verificato un errore durante l'aggiornamento del biglietto.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }, 500);
-  }, [refreshTickets, toast]);
+    updateTicketMutation.mutate(updatedTicket);
+  }, [updateTicketMutation]);
 
   const handleDeleteTicket = useCallback((id: string) => {
-    setIsLoading(true);
-    
-    // Simuliamo un breve ritardo come nella pagina Pulling
-    setTimeout(() => {
-      try {
-        deleteTicket(id);
-        // Aggiorniamo lo stato direttamente per evitare problemi di race condition
-        setTickets(prevTickets => prevTickets.filter(ticket => ticket.id !== id));
-        toast({
-          title: "Biglietto Eliminato",
-          description: "Il biglietto è stato eliminato con successo.",
-        });
-      } catch (error) {
-        debugLog('Error deleting ticket', error);
-        toast({
-          title: "Errore",
-          description: "Si è verificato un errore durante l'eliminazione del biglietto.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }, 500);
-  }, [toast]);
+    deleteTicketMutation.mutate(id);
+  }, [deleteTicketMutation]);
+
+  // Controlla se qualsiasi operazione è in corso
+  const isProcessing = isLoading || addTicketMutation.isPending || 
+                      updateTicketMutation.isPending || deleteTicketMutation.isPending;
 
   return (
     <div className="animate-in space-y-6">
@@ -131,9 +129,9 @@ const TicketsPage = () => {
         <Button
           className="mt-4 md:mt-0"
           onClick={() => setIsAddDialogOpen(true)}
-          disabled={isLoading}
+          disabled={isProcessing}
         >
-          {isLoading ? (
+          {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Elaborazione...
@@ -159,14 +157,14 @@ const TicketsPage = () => {
             tickets={tickets}
             onUpdateTicket={handleUpdateTicket}
             onDeleteTicket={handleDeleteTicket}
-            isLoading={isLoading}
+            isLoading={isProcessing}
           />
         </CardContent>
       </Card>
 
       {/* Dialog per aggiungere un nuovo biglietto */}
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-        if (!isLoading) setIsAddDialogOpen(open);
+        if (!isProcessing) setIsAddDialogOpen(open);
       }}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -174,8 +172,8 @@ const TicketsPage = () => {
           </DialogHeader>
           <TicketForm
             onSubmit={handleAddTicket}
-            onCancel={() => !isLoading && setIsAddDialogOpen(false)}
-            isLoading={isLoading}
+            onCancel={() => !isProcessing && setIsAddDialogOpen(false)}
+            isLoading={addTicketMutation.isPending}
           />
         </DialogContent>
       </Dialog>
