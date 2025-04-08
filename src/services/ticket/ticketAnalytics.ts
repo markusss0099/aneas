@@ -1,11 +1,10 @@
-
 import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { debugLog } from '@/lib/debugUtils';
 import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from '@/services/serviceService';
 import { getTickets } from './ticketStorage';
-import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit } from './ticketCalculations';
+import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit, calculateTicketMargin } from './ticketCalculations';
 
 // Ottieni il sommario finanziario
 export const getFinancialSummary = async (): Promise<FinancialSummary> => {
@@ -20,7 +19,9 @@ export const getFinancialSummary = async (): Promise<FinancialSummary> => {
     const totalRevenue = tickets.reduce((sum, ticket) => 
       sum + calculateTicketTotalRevenue(ticket), 0);
     const totalProfit = totalRevenue - totalInvested;
-    const profitMargin = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0;
+    
+    // Calcola il margine percentuale sul ricavo totale anziché sull'investimento
+    const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
     
     const totalServices = services.length;
     
@@ -109,10 +110,15 @@ export const getCashflowByPeriod = async (period: Period): Promise<CashflowByPer
         };
       }
       
-      result[purchasePeriod].invested += calculateTicketTotalCost(ticket);
+      // Assicuriamoci di utilizzare le funzioni di calcolo standardizzate
+      const ticketCost = calculateTicketTotalCost(ticket);
+      const ticketRevenue = calculateTicketTotalRevenue(ticket);
+      const ticketProfit = calculateTicketProfit(ticket);
       
-      result[paymentPeriod].revenue += calculateTicketTotalRevenue(ticket);
-      result[paymentPeriod].profit += calculateTicketProfit(ticket);
+      result[purchasePeriod].invested += ticketCost;
+      
+      result[paymentPeriod].revenue += ticketRevenue;
+      result[paymentPeriod].profit += ticketProfit;
     });
     
     const serviceRevenueByPeriod = await getServiceRevenueByPeriod(period);

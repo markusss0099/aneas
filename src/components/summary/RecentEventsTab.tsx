@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Ticket } from '@/types';
 import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
-import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit } from '@/services/ticket';
+import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit, calculateTicketMargin } from '@/services/ticket';
 
 interface RecentEventsTabProps {
   tickets: Ticket[];
@@ -58,6 +58,7 @@ const RecentEventsTab = ({ tickets }: RecentEventsTabProps) => {
                 const totalCost = calculateTicketTotalCost(ticket);
                 const totalRevenue = calculateTicketTotalRevenue(ticket);
                 const profit = calculateTicketProfit(ticket);
+                const margin = calculateTicketMargin(ticket);
                 
                 return (
                   <TableRow key={ticket.id}>

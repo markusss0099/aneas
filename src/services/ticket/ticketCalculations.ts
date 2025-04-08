@@ -16,9 +16,11 @@ export const calculateTicketProfit = (ticket: Ticket): number => {
   return calculateTicketTotalRevenue(ticket) - calculateTicketTotalCost(ticket);
 };
 
-// Calcola il margine per un singolo biglietto
+// Calcola il margine percentuale per un singolo biglietto
 export const calculateTicketMargin = (ticket: Ticket): number => {
   const totalCost = calculateTicketTotalCost(ticket);
-  const profit = calculateTicketProfit(ticket);
-  return totalCost > 0 ? (profit / totalCost) * 100 : 0;
+  const totalRevenue = calculateTicketTotalRevenue(ticket);
+  
+  // Per evitare divisione per zero e calcolare il margine sul ricavo invece che sul costo
+  return totalRevenue > 0 ? (calculateTicketProfit(ticket) / totalRevenue) * 100 : 0;
 };

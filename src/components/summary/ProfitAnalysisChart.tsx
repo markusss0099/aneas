@@ -12,7 +12,8 @@ const ProfitAnalysisChart = ({ summary }: ProfitAnalysisChartProps) => {
   // Dati per il grafico a torta del profitto vs investimento
   const profitData = [
     { name: 'Investimento', value: summary.totalInvested },
-    { name: 'Profitto', value: Math.max(0, summary.totalProfit) }, // Mostra solo il profitto positivo
+    // Assicuriamoci di mostrare solo il profitto quando è positivo
+    { name: 'Profitto', value: Math.max(0, summary.totalProfit) },
   ];
 
   // Colori per i grafici

@@ -6,6 +6,7 @@ import { Pencil, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import { Ticket } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import ViagogoPrice from './ViagogoPrice';
+import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit, calculateTicketMargin } from '@/services/ticket';
 
 interface TicketRowProps {
   ticket: Ticket;
@@ -16,12 +17,11 @@ interface TicketRowProps {
 }
 
 const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: TicketRowProps) => {
-  // Calculate total cost based on ticketPrice, additionalCosts and quantity
-  const totalCost = (ticket.ticketPrice + ticket.additionalCosts) * ticket.quantity;
-  const profit = ticket.expectedRevenue - totalCost;
-  const margin = ticket.expectedRevenue > 0 
-    ? ((profit / ticket.expectedRevenue) * 100).toFixed(1) 
-    : '0';
+  // Utilizziamo le funzioni di calcolo standardizzate
+  const totalCost = calculateTicketTotalCost(ticket);
+  const totalRevenue = calculateTicketTotalRevenue(ticket);
+  const profit = calculateTicketProfit(ticket);
+  const margin = calculateTicketMargin(ticket).toFixed(1);
 
   return (
     <TableRow key={ticket.id}>
@@ -42,7 +42,7 @@ const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: Ti
           {formatCurrency(totalCost)}
         </TableCell>
       )}
-      {!isMobile && <TableCell>{formatCurrency(ticket.expectedRevenue)}</TableCell>}
+      {!isMobile && <TableCell>{formatCurrency(totalRevenue)}</TableCell>}
       {!isMobile && <TableCell>{formatCurrency(totalCost)}</TableCell>}
       <TableCell className={isMobile ? "px-2 py-2 text-xs font-semibold" : ""}>
         <span className={profit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
