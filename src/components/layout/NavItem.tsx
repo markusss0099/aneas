@@ -18,6 +18,7 @@ const NavItem = ({ to, icon, label, onClick }: NavItemProps) => {
       className={({ isActive }) => cn(
         "flex items-center gap-3 px-4 py-3 rounded-md transition-colors",
         "active:bg-muted-foreground/10", // Feedback tattile per dispositivi mobili
+        "touch-manipulation", // Migliora l'esperienza touch
         isActive 
           ? "bg-primary text-primary-foreground" 
           : "hover:bg-secondary"

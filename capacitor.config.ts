@@ -10,7 +10,11 @@ const config: CapacitorConfig = {
     cleartext: true
   },
   ios: {
-    contentInset: 'always'
+    contentInset: 'always',
+    allowsLinkPreview: false,
+    backgroundColor: '#ffffff',
+    statusBarStyle: 'dark',
+    webViewSuspensionOnBackground: true
   }
 };
 

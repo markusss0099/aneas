@@ -26,7 +26,7 @@ const MobileNav = ({ isOpen, setIsOpen, navItems, closeMenu }: MobileNavProps) =
           variant="ghost" 
           size="icon"
           aria-label="Apri menu"
-          className="fixed top-4 left-4 z-50 h-8 w-8"
+          className="fixed top-4 left-4 z-50 h-8 w-8 bg-background/80 backdrop-blur-sm"
         >
           <Menu size={20} />
         </Button>
