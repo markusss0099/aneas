@@ -37,7 +37,8 @@ const TicketList = ({
     handleDeleteCancel,
     updateTicketHandler,
     deleteTicketHandler,
-    isProcessing
+    isProcessing,
+    resetStates
   } = useTicketActions();
 
   // Combined loading state
@@ -85,6 +86,21 @@ const TicketList = ({
     }
   };
 
+  // Handle dialog open changes with proper state management
+  const handleEditDialogChange = (open: boolean) => {
+    if (!open && !isProcessingAll) {
+      handleEditCancel();
+      resetStates();
+    }
+  };
+
+  const handleDeleteDialogChange = (open: boolean) => {
+    if (!open && !isProcessingAll) {
+      handleDeleteCancel();
+      resetStates();
+    }
+  };
+
   debugLog('TicketList rendering', { ticketsCount: tickets.length, filteredCount: filteredTickets.length });
 
   return (
@@ -109,7 +125,7 @@ const TicketList = ({
 
       <EditTicketDialog 
         isOpen={isEditDialogOpen}
-        setIsOpen={(open) => !isProcessingAll && !open && handleEditCancel()}
+        setIsOpen={handleEditDialogChange}
         ticket={editingTicket}
         onSubmit={handleSubmitEdit}
         onCancel={handleEditCancel}
@@ -118,7 +134,7 @@ const TicketList = ({
 
       <DeleteTicketDialog 
         isOpen={isDeleteDialogOpen}
-        setIsOpen={(open) => !isProcessingAll && !open && handleDeleteCancel()}
+        setIsOpen={handleDeleteDialogChange}
         onConfirm={confirmDelete}
         onCancel={handleDeleteCancel}
         isLoading={isProcessingAll}

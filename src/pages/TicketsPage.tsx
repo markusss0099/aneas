@@ -30,11 +30,12 @@ const TicketsPage = () => {
     handleUpdateTicket, 
     handleDeleteTicket,
     isProcessing,
-    addTicketMutation
+    addTicketMutation,
+    resetStates
   } = useTicketActions();
 
   // Utilizzo di React Query per gestire lo stato e il caricamento
-  const { data: tickets = [], isLoading, error } = useQuery({
+  const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['tickets'],
     queryFn: getTickets,
   });
@@ -55,16 +56,36 @@ const TicketsPage = () => {
   useEffect(() => {
     if (addTicketMutation.isSuccess) {
       setIsAddDialogOpen(false);
+      // Ensure data is refreshed after adding a ticket
+      refetch();
     }
-  }, [addTicketMutation.isSuccess]);
+  }, [addTicketMutation.isSuccess, refetch]);
 
   // Combined loading state
   const isPageLoading = isLoading || isProcessing;
 
+  // Handle dialog opening
+  const openAddDialog = () => {
+    if (!isProcessing) {
+      setIsAddDialogOpen(true);
+    }
+  };
+
+  // Handle dialog closing
   const closeAddDialog = () => {
     // Only close the dialog if we're not in the middle of processing
     if (!addTicketMutation.isPending) {
       setIsAddDialogOpen(false);
+      resetStates();
+    }
+  };
+
+  // Handle dialog state change
+  const handleAddDialogOpenChange = (open: boolean) => {
+    if (!open && !addTicketMutation.isPending) {
+      closeAddDialog();
+    } else if (open && !isProcessing) {
+      openAddDialog();
     }
   };
 
@@ -83,7 +104,7 @@ const TicketsPage = () => {
         </div>
         <Button
           className="mt-3 md:mt-0 w-full md:w-auto"
-          onClick={() => setIsAddDialogOpen(true)}
+          onClick={openAddDialog}
           disabled={isPageLoading}
           size={isMobile ? "sm" : "default"}
         >
@@ -122,9 +143,10 @@ const TicketsPage = () => {
 
       {/* Dialog per aggiungere un nuovo biglietto */}
       {isMobile ? (
-        <Drawer open={isAddDialogOpen} onOpenChange={(open) => {
-          if (!addTicketMutation.isPending) setIsAddDialogOpen(open);
-        }}>
+        <Drawer 
+          open={isAddDialogOpen} 
+          onOpenChange={handleAddDialogOpenChange}
+        >
           <DrawerContent className="px-4 pb-6 pt-2 max-h-[85vh]">
             <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
             <h3 className="font-semibold text-lg pt-2 pb-4">Aggiungi Nuovo Biglietto</h3>
@@ -133,14 +155,16 @@ const TicketsPage = () => {
                 onSubmit={handleAddTicket}
                 onCancel={closeAddDialog}
                 isLoading={addTicketMutation.isPending}
+                key={`add-ticket-form-${isAddDialogOpen}`}
               />
             </ScrollArea>
           </DrawerContent>
         </Drawer>
       ) : (
-        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
-          if (!addTicketMutation.isPending) setIsAddDialogOpen(open);
-        }}>
+        <Dialog 
+          open={isAddDialogOpen} 
+          onOpenChange={handleAddDialogOpenChange}
+        >
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Aggiungi Nuovo Biglietto</DialogTitle>
@@ -149,6 +173,7 @@ const TicketsPage = () => {
               onSubmit={handleAddTicket}
               onCancel={closeAddDialog}
               isLoading={addTicketMutation.isPending}
+              key={`add-ticket-form-${isAddDialogOpen}`}
             />
           </DialogContent>
         </Dialog>

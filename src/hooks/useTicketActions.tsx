@@ -37,6 +37,10 @@ export const useTicketActions = () => {
         description: "Si è verificato un errore nell'aggiungere il biglietto.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Reset loading state regardless of success/failure
+      setIsAddingTicket(false);
     }
   });
   
@@ -63,6 +67,10 @@ export const useTicketActions = () => {
         description: "Si è verificato un errore nell'aggiornare il biglietto.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Reset loading state regardless of success/failure
+      setEditingTicket(null);
     }
   });
   
@@ -89,8 +97,23 @@ export const useTicketActions = () => {
         description: "Si è verificato un errore nell'eliminare il biglietto.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Reset loading state regardless of success/failure
+      setDeletingTicketId(null);
     }
   });
+  
+  // Reset states - used when closing dialogs
+  const resetStates = useCallback(() => {
+    if (!addTicketMutation.isPending) setIsAddingTicket(false);
+    if (!updateTicketMutation.isPending) setEditingTicket(null);
+    if (!deleteTicketMutation.isPending) setDeletingTicketId(null);
+  }, [
+    addTicketMutation.isPending, 
+    updateTicketMutation.isPending, 
+    deleteTicketMutation.isPending
+  ]);
   
   const handleEdit = useCallback((ticket: Ticket) => {
     setEditingTicket(ticket);
@@ -103,14 +126,18 @@ export const useTicketActions = () => {
   }, []);
   
   const handleEditCancel = useCallback(() => {
-    setEditingTicket(null);
-    setIsEditDialogOpen(false);
-  }, []);
+    if (!updateTicketMutation.isPending) {
+      setEditingTicket(null);
+      setIsEditDialogOpen(false);
+    }
+  }, [updateTicketMutation.isPending]);
   
   const handleDeleteCancel = useCallback(() => {
-    setDeletingTicketId(null);
-    setIsDeleteDialogOpen(false);
-  }, []);
+    if (!deleteTicketMutation.isPending) {
+      setDeletingTicketId(null);
+      setIsDeleteDialogOpen(false);
+    }
+  }, [deleteTicketMutation.isPending]);
   
   const handleAddTicket = useCallback((ticketData: Omit<Ticket, 'id'>) => {
     debugLog('Handling add ticket', ticketData);
@@ -158,6 +185,7 @@ export const useTicketActions = () => {
     handleDeleteTicket,
     updateTicketHandler,
     deleteTicketHandler,
+    resetStates,
     isProcessing: addTicketMutation.isPending || 
                   updateTicketMutation.isPending || 
                   deleteTicketMutation.isPending

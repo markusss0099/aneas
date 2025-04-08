@@ -59,6 +59,7 @@ const EditTicketDialog = ({
               onSubmit={onSubmit}
               onCancel={onCancel}
               isLoading={isLoading}
+              key={`edit-ticket-form-${ticket.id}-${isOpen}`}
             />
           </ScrollArea>
         </DrawerContent>
@@ -80,6 +81,7 @@ const EditTicketDialog = ({
           onSubmit={onSubmit}
           onCancel={onCancel}
           isLoading={isLoading}
+          key={`edit-ticket-form-${ticket.id}-${isOpen}`}
         />
       </DialogContent>
     </Dialog>
