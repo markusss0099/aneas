@@ -3,12 +3,14 @@ import { Service } from '../types';
 import { debugLog } from '@/lib/debugUtils';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { getUserStorageKey } from './authService';
 
-// Chiave per il localStorage
-const STORAGE_KEY = 'cashflow-services';
+// Base key for localStorage
+const BASE_STORAGE_KEY = 'cashflow-services';
 
 // Carica i servizi dal localStorage
 export const getServices = (): Service[] => {
+  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
   const servicesJson = localStorage.getItem(STORAGE_KEY);
   if (!servicesJson) return [];
   
@@ -31,6 +33,7 @@ export const getServices = (): Service[] => {
 
 // Salva i servizi nel localStorage
 export const saveServices = (services: Service[]): void => {
+  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(services));
   debugLog('Saved services to storage', services);
 };

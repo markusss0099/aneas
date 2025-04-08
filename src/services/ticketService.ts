@@ -4,12 +4,14 @@ import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameW
 import { it } from 'date-fns/locale';
 import { debugLog } from '@/lib/debugUtils';
 import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from './serviceService';
+import { getUserStorageKey } from './authService';
 
-// Simuliamo la persistenza dei dati con localStorage
-const STORAGE_KEY = 'cashflow-tickets';
+// Base key for tickets storage
+const BASE_STORAGE_KEY = 'cashflow-tickets';
 
 // Carica i biglietti dal localStorage
 export const getTickets = (): Ticket[] => {
+  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
   const ticketsJson = localStorage.getItem(STORAGE_KEY);
   if (!ticketsJson) return [];
   
@@ -34,6 +36,7 @@ export const getTickets = (): Ticket[] => {
 
 // Salva i biglietti nel localStorage
 export const saveTickets = (tickets: Ticket[]): void => {
+  const STORAGE_KEY = getUserStorageKey(BASE_STORAGE_KEY);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets));
   debugLog('Saved tickets to storage', tickets);
 };

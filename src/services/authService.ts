@@ -27,6 +27,13 @@ export const getCurrentUser = (): User | null => {
   }
 };
 
+// Genera una chiave utente per localStorage
+export const getUserStorageKey = (key: string): string => {
+  const user = getCurrentUser();
+  if (!user) return key;
+  return `${key}_${user.id}`;
+};
+
 // Login semplice con username/password
 export const login = (username: string, password: string): Promise<User> => {
   return new Promise((resolve, reject) => {
@@ -46,9 +53,13 @@ export const login = (username: string, password: string): Promise<User> => {
         return;
       }
       
-      // Crea un ID semplice basato sull'username per simulare un account utente
+      // Genera un ID deterministico basato sull'username e password
+      // In questo modo lo stesso utente avrà sempre lo stesso ID su ogni dispositivo
+      const hash = btoa(`${username}:${password}`);
+      const id = `user_${hash.substring(0, 10)}`;
+      
       const user: User = {
-        id: `user_${Math.random().toString(36).substr(2, 9)}`,
+        id,
         username
       };
       

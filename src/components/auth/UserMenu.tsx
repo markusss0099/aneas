@@ -2,9 +2,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Info } from 'lucide-react';
 import { getCurrentUser, logout } from '@/services/authService';
 import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const UserMenu = () => {
   const user = getCurrentUser();
@@ -27,6 +28,14 @@ const UserMenu = () => {
       <div className="flex items-center gap-2 p-2 rounded-md bg-secondary">
         <User size={18} />
         <span className="text-sm font-medium">{user.username}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info size={16} className="text-muted-foreground cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent className="max-w-[250px]">
+            <p>Per accedere agli stessi dati su diversi dispositivi, usa esattamente le stesse credenziali (username e password).</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
       <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
         <LogOut size={18} />
