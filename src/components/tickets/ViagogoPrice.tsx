@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react';
 import { debugLog } from '@/lib/debugUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isConsentRequired, setIsConsentRequired] = useState(false);
   const { toast } = useToast();
 
   const fetchViagogoPriceFromPage = async (url: string) => {
@@ -23,6 +24,7 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
       setIsLoading(true);
       setIsError(false);
       setErrorMessage(null);
+      setIsConsentRequired(false);
       
       // Create a URL object to ensure we're working with a proper URL
       const viagogoUrl = new URL(url);
@@ -30,13 +32,20 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
       // Try to use the Edge Function to fetch and parse the page
       try {
         debugLog('Calling viagogo-price Edge Function with URL:', url);
-        const { data, error } = await supabase.functions.invoke('viagogo-price', {
+        const { data, error, status } = await supabase.functions.invoke('viagogo-price', {
           body: { url }
         });
         
         if (error) {
           debugLog('Edge Function error:', error);
           throw new Error(`Edge Function error: ${error.message}`);
+        }
+        
+        // Check if the response indicates a consent popup is present
+        if (data?.needsConsent || (status === 422)) {
+          setIsConsentRequired(true);
+          setErrorMessage("È necessario accettare il consenso sul sito Viagogo");
+          throw new Error("Popup di consenso rilevato, visita il sito per accettarlo");
         }
         
         if (data && data.price) {
@@ -50,6 +59,10 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
         }
       } catch (functionError) {
         debugLog('Error calling viagogo-price Edge Function:', functionError);
+        
+        // Check if we already determined consent is required
+        if (isConsentRequired) throw functionError;
+        
         // Continue with fallback method
         
         // Fallback: Extract price from URL or parts of the URL
@@ -98,6 +111,18 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
     }
   };
   
+  const handleOpenLink = () => {
+    if (link && typeof window !== 'undefined') {
+      window.open(link, "_blank");
+      // Set a timeout to retry after they might have accepted the consent
+      setTimeout(() => {
+        if (isConsentRequired && link) {
+          handleRetry();
+        }
+      }, 30000); // 30 seconds
+    }
+  };
+  
   useEffect(() => {
     if (!link) return;
     fetchViagogoPriceFromPage(link);
@@ -122,7 +147,9 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
         <div className="flex items-center">
           <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1" />
           <span className="text-yellow-600 mr-2">
-            {errorMessage || "Impossibile estrarre il prezzo"}
+            {isConsentRequired 
+              ? "Richiede consenso" 
+              : (errorMessage || "Impossibile estrarre il prezzo")}
           </span>
           <TooltipProvider>
             <Tooltip>
@@ -143,14 +170,14 @@ const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
           </TooltipProvider>
         </div>
       )}
-      <a 
-        href={link} 
-        target="_blank" 
-        rel="noopener noreferrer" 
-        className="text-xs text-blue-500 hover:underline"
+      <Button 
+        variant="link" 
+        className="p-0 h-auto text-xs text-blue-500 hover:underline"
+        onClick={handleOpenLink}
       >
-        Vedi
-      </a>
+        <span className="mr-1">Vedi</span>
+        <ExternalLink className="h-3 w-3 inline" />
+      </Button>
     </div>
   );
 };
