@@ -13,13 +13,24 @@ import { Loader2 } from 'lucide-react';
 
 interface TicketTableProps {
   tickets: Ticket[];
+  filteredTickets: Ticket[];
   onEdit: (ticket: Ticket) => void;
   onDelete: (id: string) => void;
   isLoading: boolean;
   isMobile?: boolean;
 }
 
-const TicketTable = ({ tickets, onEdit, onDelete, isLoading, isMobile = false }: TicketTableProps) => {
+const TicketTable = ({ 
+  tickets, 
+  filteredTickets, 
+  onEdit, 
+  onDelete, 
+  isLoading, 
+  isMobile = false 
+}: TicketTableProps) => {
+  // Utilizziamo i filteredTickets invece di tickets per il rendering
+  const ticketsToDisplay = filteredTickets;
+
   if (isLoading && tickets.length === 0) {
     return (
       <div className="w-full flex justify-center items-center py-12">
@@ -28,7 +39,7 @@ const TicketTable = ({ tickets, onEdit, onDelete, isLoading, isMobile = false }:
     );
   }
 
-  if (tickets.length === 0) {
+  if (ticketsToDisplay.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         Nessun biglietto trovato.
@@ -53,7 +64,7 @@ const TicketTable = ({ tickets, onEdit, onDelete, isLoading, isMobile = false }:
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tickets.map((ticket) => (
+          {ticketsToDisplay.map((ticket) => (
             <TicketRow
               key={ticket.id}
               ticket={ticket}
