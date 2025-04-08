@@ -10,6 +10,7 @@ import {
 import UserMenu from '../auth/UserMenu';
 import NavItem from './NavItem';
 import { NavItemType } from '@/types/nav';
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -33,8 +34,9 @@ const MobileNav = ({ isOpen, setIsOpen, navItems, closeMenu }: MobileNavProps) =
       </SheetTrigger>
       <SheetContent side="left" className="w-[75%] max-w-[300px] p-0 rounded-none border-r">
         <div className="flex flex-col h-full">
-          <div className="p-6">
+          <div className="p-6 flex items-center justify-between">
             <h1 className="font-bold text-xl">Cashflow Manager</h1>
+            <ThemeToggle />
           </div>
           <nav className="flex flex-col p-4 space-y-1 flex-1">
             {navItems.map((item) => (
