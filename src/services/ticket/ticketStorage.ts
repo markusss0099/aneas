@@ -51,6 +51,7 @@ export const getTickets = async (): Promise<Ticket[]> => {
 
 // Converte un Ticket per l'invio a Supabase
 export const ticketToSupabase = (ticket: Ticket): any => {
+  // Ensure we don't include undefined values that can cause issues
   return {
     event_name: ticket.eventName,
     quantity: ticket.quantity,
@@ -61,6 +62,6 @@ export const ticketToSupabase = (ticket: Ticket): any => {
     additional_costs: ticket.additionalCosts,
     expected_revenue: ticket.expectedRevenue,
     notes: ticket.notes || null,
-    viagogo_link: ticket.viagogoLink || null  // Ensure this is properly included
+    viagogo_link: ticket.viagogoLink || null
   };
 };
