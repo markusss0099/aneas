@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Pencil, Trash2, Loader2 } from 'lucide-react';
 import { Ticket } from '@/types';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import ViagogoPrice from './ViagogoPrice';
 
 interface TicketRowProps {
   ticket: Ticket;
@@ -43,6 +44,11 @@ const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: Ti
           <span className={profit > 0 ? 'text-green-600' : 'text-red-600'}>
             {margin}%
           </span>
+        </TableCell>
+      )}
+      {!isMobile && (
+        <TableCell>
+          <ViagogoPrice link={ticket.viagogoLink} />
         </TableCell>
       )}
       <TableCell className={`text-right ${isMobile ? "px-2 py-2" : ""}`}>

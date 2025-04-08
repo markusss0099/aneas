@@ -36,7 +36,8 @@ export const getTickets = async (): Promise<Ticket[]> => {
       ticketPrice: parseFloat(String(ticket.ticket_price)),
       additionalCosts: parseFloat(String(ticket.additional_costs)),
       expectedRevenue: parseFloat(String(ticket.expected_revenue)),
-      notes: ticket.notes || undefined
+      notes: ticket.notes || undefined,
+      viagogoLink: ticket.viagogo_link || undefined
     }));
     
     debugLog('Retrieved tickets from Supabase', parsedTickets);
@@ -60,6 +61,7 @@ export const ticketToSupabase = (ticket: Ticket): any => {
     ticket_price: ticket.ticketPrice,
     additional_costs: ticket.additionalCosts,
     expected_revenue: ticket.expectedRevenue,
-    notes: ticket.notes || null
+    notes: ticket.notes || null,
+    viagogo_link: ticket.viagogoLink || null
   };
 };

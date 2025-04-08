@@ -22,6 +22,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Ticket } from '@/types';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ const formSchema = z.object({
   additionalCosts: z.coerce.number().min(0, { message: 'I costi aggiuntivi devono essere maggiori o uguali a 0' }),
   expectedRevenue: z.coerce.number().min(0, { message: 'I ricavi attesi devono essere maggiori o uguali a 0' }),
   notes: z.string().optional(),
+  viagogoLink: z.string().url({ message: 'Inserisci un link valido' }).optional().or(z.literal('')),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -66,6 +68,7 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
     additionalCosts: initialData?.additionalCosts || 0,
     expectedRevenue: initialData?.expectedRevenue || 0,
     notes: initialData?.notes || '',
+    viagogoLink: initialData?.viagogoLink || '',
   };
 
   const form = useForm<FormData>({
@@ -283,6 +286,27 @@ const TicketForm = ({ onSubmit, initialData, onCancel, isLoading = false }: Tick
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="viagogoLink"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link Viagogo</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="https://www.viagogo.it/..." 
+                  {...field} 
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormDescription>
+                Inserisci il link alla pagina Viagogo con i dettagli del biglietto
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

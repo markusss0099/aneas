@@ -3,68 +3,66 @@ import React from 'react';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Ticket } from '@/types';
 import TicketRow from './TicketRow';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Ticket } from '@/types';
+import { Loader2 } from 'lucide-react';
 
 interface TicketTableProps {
   tickets: Ticket[];
-  filteredTickets: Ticket[];
   onEdit: (ticket: Ticket) => void;
   onDelete: (id: string) => void;
   isLoading: boolean;
+  isMobile?: boolean;
 }
 
-const TicketTable = ({ 
-  tickets, 
-  filteredTickets, 
-  onEdit, 
-  onDelete, 
-  isLoading 
-}: TicketTableProps) => {
-  const isMobile = useIsMobile();
+const TicketTable = ({ tickets, onEdit, onDelete, isLoading, isMobile = false }: TicketTableProps) => {
+  if (isLoading && tickets.length === 0) {
+    return (
+      <div className="w-full flex justify-center items-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (tickets.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        Nessun biglietto trovato.
+      </div>
+    );
+  }
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="relative overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className={isMobile ? "px-2 py-2" : ""}>Evento</TableHead>
-            <TableHead className={isMobile ? "px-2 py-2" : ""}>Data Evento</TableHead>
+            <TableHead className={isMobile ? "px-2 py-2" : ""}>Data</TableHead>
             {!isMobile && <TableHead>Quantità</TableHead>}
-            {!isMobile && <TableHead>Incasso Previsto</TableHead>}
-            {!isMobile && <TableHead>Costo Totale</TableHead>}
+            {!isMobile && <TableHead>Ricavi</TableHead>}
+            {!isMobile && <TableHead>Costi</TableHead>}
             <TableHead className={isMobile ? "px-2 py-2" : ""}>Profitto</TableHead>
             {!isMobile && <TableHead>Margine</TableHead>}
+            {!isMobile && <TableHead>Viagogo</TableHead>}
             <TableHead className={`text-right ${isMobile ? "px-2 py-2" : ""}`}>Azioni</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTickets.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={isMobile ? 4 : 8} className="h-24 text-center">
-                {isLoading 
-                  ? 'Caricamento biglietti...' 
-                  : 'Nessun biglietto trovato.'}
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredTickets.map((ticket) => (
-              <TicketRow
-                key={ticket.id}
-                ticket={ticket}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                isLoading={isLoading}
-                isMobile={isMobile}
-              />
-            ))
-          )}
+          {tickets.map((ticket) => (
+            <TicketRow
+              key={ticket.id}
+              ticket={ticket}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              isLoading={isLoading}
+              isMobile={isMobile}
+            />
+          ))}
         </TableBody>
       </Table>
     </div>

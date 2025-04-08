@@ -10,6 +10,7 @@ export interface Ticket {
   additionalCosts: number;
   expectedRevenue: number;
   notes?: string;
+  viagogoLink?: string;
 }
 
 export interface Service {
