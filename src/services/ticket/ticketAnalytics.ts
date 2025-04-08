@@ -1,3 +1,4 @@
+
 import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../../types';
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
@@ -23,6 +24,21 @@ export const getFinancialSummary = async (): Promise<FinancialSummary> => {
     // Calcola il margine percentuale sul ricavo totale anziché sull'investimento
     const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
     
+    // Identifica i biglietti con ricavo zero (non venduti)
+    const zeroRevenueTickets = tickets.filter(ticket => 
+      calculateTicketTotalRevenue(ticket) === 0).reduce((sum, ticket) => 
+      sum + ticket.quantity, 0);
+    
+    // Calcola l'investimento nei biglietti non venduti
+    const zeroRevenueInvestment = tickets.filter(ticket => 
+      calculateTicketTotalRevenue(ticket) === 0).reduce((sum, ticket) => 
+      sum + calculateTicketTotalCost(ticket), 0);
+    
+    // Calcola il profitto effettivo dai soli biglietti venduti
+    const actualProfit = tickets.filter(ticket => 
+      calculateTicketTotalRevenue(ticket) > 0).reduce((sum, ticket) => 
+      sum + calculateTicketProfit(ticket), 0);
+    
     const totalServices = services.length;
     
     const summary: FinancialSummary = {
@@ -33,6 +49,9 @@ export const getFinancialSummary = async (): Promise<FinancialSummary> => {
       profitMargin,
       totalServices,
       totalServiceRevenue,
+      zeroRevenueTickets,
+      zeroRevenueInvestment,
+      actualProfit
     };
     
     debugLog('Generated financial summary', summary);
@@ -48,6 +67,9 @@ export const getFinancialSummary = async (): Promise<FinancialSummary> => {
       profitMargin: 0,
       totalServices: 0,
       totalServiceRevenue: 0,
+      zeroRevenueTickets: 0,
+      zeroRevenueInvestment: 0,
+      actualProfit: 0
     };
   }
 };

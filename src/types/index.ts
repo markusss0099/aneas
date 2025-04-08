@@ -29,6 +29,10 @@ export interface FinancialSummary {
   profitMargin: number;
   totalServices: number;
   totalServiceRevenue: number;
+  // New fields for separating unsold tickets
+  zeroRevenueTickets: number;
+  zeroRevenueInvestment: number;
+  actualProfit: number;
 }
 
 export interface CashflowByPeriod {

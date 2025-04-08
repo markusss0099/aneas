@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, AlertCircle } from 'lucide-react';
 import { FinancialSummary } from '@/types';
 import { formatCurrency } from '@/lib/utils';
 
@@ -79,6 +79,44 @@ const SummaryCards = ({ summary }: SummaryCardsProps) => {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Margine: {summary.profitMargin.toFixed(2)}%
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="lg:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">
+            Biglietti Non Venduti
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center">
+            <AlertCircle className="mr-1 h-4 w-4 text-amber-500" />
+            <span className="text-2xl font-bold text-amber-500">
+              {summary.zeroRevenueTickets}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Investimento in sospeso: {formatCurrency(summary.zeroRevenueInvestment)}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="lg:col-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">
+            Profitto Effettivo
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center">
+            <ArrowUpRight className="mr-1 h-4 w-4 text-success" />
+            <span className="text-2xl font-bold text-success">
+              {formatCurrency(summary.actualProfit)}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Solo da biglietti venduti
           </p>
         </CardContent>
       </Card>
