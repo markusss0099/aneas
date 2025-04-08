@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -17,7 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react';
 import { 
   getCashflowByPeriod, 
   getFinancialSummary, 
@@ -27,14 +28,45 @@ import {
   calculateTicketProfit
 } from '@/services/ticket';
 import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
-import { Period } from '@/types';
+import { Period, Ticket, FinancialSummary, CashflowByPeriod } from '@/types';
 import ServiceSummarySection from '@/components/summary/ServiceSummarySection';
 
 const SummaryPage = () => {
   const [period, setPeriod] = useState<Period>('month');
-  const tickets = getTickets();
-  const summary = getFinancialSummary();
-  const cashflowData = getCashflowByPeriod(period);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [summary, setSummary] = useState<FinancialSummary | null>(null);
+  const [cashflowData, setCashflowData] = useState<CashflowByPeriod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const ticketsData = await getTickets();
+        const summaryData = await getFinancialSummary();
+        const cashflow = await getCashflowByPeriod(period);
+        
+        setTickets(ticketsData);
+        setSummary(summaryData);
+        setCashflowData(cashflow);
+      } catch (error) {
+        console.error("Error fetching summary data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [period]);
+
+  if (isLoading || !summary) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Caricamento riepilogo...</span>
+      </div>
+    );
+  }
 
   // Dati per il grafico a torta dei costi
   const costData = [

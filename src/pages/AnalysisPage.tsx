@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -17,8 +17,9 @@ import {
   Area,
 } from 'recharts';
 import { getCashflowByPeriod, getFinancialSummary } from '@/services/ticket';
-import { CashflowByPeriod, Period } from '@/types';
+import { CashflowByPeriod, Period, FinancialSummary } from '@/types';
 import ServiceAnalysis from '@/components/analysis/ServiceAnalysis';
+import { Loader2 } from 'lucide-react';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -43,25 +44,56 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const AnalysisPage = () => {
   const [period, setPeriod] = useState<Period>('month');
-  const cashflowData = getCashflowByPeriod(period);
-  const summary = getFinancialSummary();
+  const [cashflowData, setCashflowData] = useState<CashflowByPeriod[]>([]);
+  const [summary, setSummary] = useState<FinancialSummary | null>(null);
+  const [cumulativeData, setCumulativeData] = useState<CashflowByPeriod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Calcoliamo il cashflow cumulativo
-  const cumulativeData = cashflowData.reduce((acc: CashflowByPeriod[], current) => {
-    const prevCumulative = acc.length > 0 ? acc[acc.length - 1] : { 
-      invested: 0, revenue: 0, profit: 0, serviceRevenue: 0 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const summaryData = await getFinancialSummary();
+        const cashflow = await getCashflowByPeriod(period);
+        setSummary(summaryData);
+        setCashflowData(cashflow);
+        
+        // Calcoliamo il cashflow cumulativo
+        const cumulativeResult = cashflow.reduce((acc: CashflowByPeriod[], current) => {
+          const prevCumulative = acc.length > 0 ? acc[acc.length - 1] : { 
+            invested: 0, revenue: 0, profit: 0, serviceRevenue: 0 
+          };
+          
+          const newCumulative = {
+            period: current.period,
+            invested: prevCumulative.invested + current.invested,
+            revenue: prevCumulative.revenue + current.revenue,
+            profit: prevCumulative.profit + current.profit,
+            serviceRevenue: prevCumulative.serviceRevenue + current.serviceRevenue,
+          };
+          
+          return [...acc, newCumulative];
+        }, [] as CashflowByPeriod[]);
+        
+        setCumulativeData(cumulativeResult);
+      } catch (error) {
+        console.error("Error fetching analysis data:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    const newCumulative = {
-      period: current.period,
-      invested: prevCumulative.invested + current.invested,
-      revenue: prevCumulative.revenue + current.revenue,
-      profit: prevCumulative.profit + current.profit,
-      serviceRevenue: prevCumulative.serviceRevenue + current.serviceRevenue,
-    };
-    
-    return [...acc, newCumulative];
-  }, [] as CashflowByPeriod[]);
+    fetchData();
+  }, [period]);
+
+  if (isLoading || !summary) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Caricamento analisi...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in space-y-6">

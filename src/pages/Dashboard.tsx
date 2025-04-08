@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,19 +15,48 @@ import {
   Bar,
   Legend
 } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp, Loader2 } from 'lucide-react';
 import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticket';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import DebugPanel from '@/components/debug/DebugPanel';
 import { isDebugEnabled } from '@/lib/debugUtils';
 import ServiceSummary from '@/components/dashboard/ServiceSummary';
+import { FinancialSummary, CashflowByPeriod } from '@/types';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const summary = getFinancialSummary();
-  const monthlyCashflow = getCashflowByPeriod('month');
+  const [summary, setSummary] = useState<FinancialSummary | null>(null);
+  const [monthlyCashflow, setMonthlyCashflow] = useState<CashflowByPeriod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const debugMode = isDebugEnabled();
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const summaryData = await getFinancialSummary();
+        const cashflowData = await getCashflowByPeriod('month');
+        setSummary(summaryData);
+        setMonthlyCashflow(cashflowData);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
+  if (isLoading || !summary) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2">Caricamento dashboard...</span>
+      </div>
+    );
+  }
   
   const summaryCards = [
     {

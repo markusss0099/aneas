@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -10,18 +10,51 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { getServices } from '@/services/serviceService';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Service } from '@/types';
 
 const ServiceSummarySection = () => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoading(true);
+        const servicesData = await getServices();
+        setServices(servicesData);
+        
+        // Calcola il totale dei ricavi
+        const total = servicesData.reduce((sum, service) => sum + service.revenue, 0);
+        setTotalRevenue(total);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchServices();
+  }, []);
+  
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-40">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <span className="ml-2">Caricamento servizi...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   // Ordina i servizi per data (più recenti per primi)
-  const services = [...getServices()].sort((a, b) => b.date.getTime() - a.date.getTime());
-  
-  // Prendi solo i 5 servizi più recenti
-  const recentServices = services.slice(0, 5);
-  
-  const totalRevenue = services.reduce((sum, service) => sum + service.revenue, 0);
+  const recentServices = [...services]
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 5);
   
   return (
     <Card>
