@@ -57,6 +57,7 @@ export type Database = {
           ticket_price: number
           updated_at: string
           user_id: string
+          viagogo_link: string | null
         }
         Insert: {
           additional_costs: number
@@ -72,6 +73,7 @@ export type Database = {
           ticket_price: number
           updated_at?: string
           user_id: string
+          viagogo_link?: string | null
         }
         Update: {
           additional_costs?: number
@@ -87,6 +89,7 @@ export type Database = {
           ticket_price?: number
           updated_at?: string
           user_id?: string
+          viagogo_link?: string | null
         }
         Relationships: []
       }
