@@ -8,7 +8,7 @@ interface ViagogoPriceProps {
 }
 
 const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
-  if (!link) return <span className="text-gray-400">-</span>;
+  if (!link) return null;
   
   return (
     <div className="flex items-center gap-2">
