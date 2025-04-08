@@ -6,9 +6,17 @@ import { debugLog } from '@/lib/debugUtils';
 // Carica i biglietti da Supabase
 export const getTickets = async (): Promise<Ticket[]> => {
   try {
+    // Ottieni l'utente corrente
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      debugLog('User not authenticated, cannot fetch tickets', userError);
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
+      .eq('user_id', userData.user.id)
       .order('created_at', { ascending: false });
     
     if (error) {
@@ -39,13 +47,6 @@ export const getTickets = async (): Promise<Ticket[]> => {
   }
 };
 
-// Salva i biglietti in Supabase
-export const saveTickets = async (tickets: Ticket[]): Promise<void> => {
-  // Questa funzione non è più necessaria poiché utilizziamo 
-  // le operazioni CRUD direttamente sulle singole entità
-  debugLog('saveTickets è deprecato, usa le operazioni CRUD individuali');
-};
-
 // Converte un Ticket per l'invio a Supabase
 export const ticketToSupabase = (ticket: Ticket): any => {
   return {
@@ -58,7 +59,6 @@ export const ticketToSupabase = (ticket: Ticket): any => {
     ticket_price: ticket.ticketPrice,
     additional_costs: ticket.additionalCosts,
     expected_revenue: ticket.expectedRevenue,
-    notes: ticket.notes || null,
-    user_id: supabase.auth.getUser().then(({ data }) => data.user?.id)
+    notes: ticket.notes || null
   };
 };

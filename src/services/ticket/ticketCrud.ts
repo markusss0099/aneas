@@ -6,17 +6,21 @@ import { debugLog } from '@/lib/debugUtils';
 
 // Aggiungi un nuovo biglietto
 export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => {
-  const { data: userData } = await supabase.auth.getUser();
-  const user_id = userData.user?.id;
-  
-  if (!user_id) {
+  // Ottieni l'utente corrente
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    debugLog('Error getting user', userError);
     throw new Error("Utente non autenticato");
   }
+  
+  const user_id = userData.user.id;
   
   const ticketData = {
     ...ticketToSupabase(ticket as Ticket),
     user_id
   };
+  
+  debugLog('Adding ticket with data', ticketData);
   
   const { data, error } = await supabase
     .from('tickets')
@@ -32,7 +36,7 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
   // Converti il risultato nel formato Ticket
   const newTicket: Ticket = {
     ...ticket,
-    id: data?.id || '',
+    id: data.id || '',
   };
   
   debugLog('Added new ticket', newTicket);
@@ -41,10 +45,16 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
 
 // Elimina un biglietto
 export const deleteTicket = async (id: string): Promise<void> => {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    throw new Error("Utente non autenticato");
+  }
+  
   const { error } = await supabase
     .from('tickets')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', userData.user.id);
   
   if (error) {
     debugLog('Error deleting ticket', error);
@@ -56,12 +66,12 @@ export const deleteTicket = async (id: string): Promise<void> => {
 
 // Aggiorna un biglietto esistente
 export const updateTicket = async (updatedTicket: Ticket): Promise<void> => {
-  const { data: userData } = await supabase.auth.getUser();
-  const user_id = userData.user?.id;
-  
-  if (!user_id) {
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
     throw new Error("Utente non autenticato");
   }
+  
+  const user_id = userData.user.id;
   
   const ticketData = {
     ...ticketToSupabase(updatedTicket),
@@ -71,7 +81,8 @@ export const updateTicket = async (updatedTicket: Ticket): Promise<void> => {
   const { error } = await supabase
     .from('tickets')
     .update(ticketData)
-    .eq('id', updatedTicket.id);
+    .eq('id', updatedTicket.id)
+    .eq('user_id', user_id);
   
   if (error) {
     debugLog('Error updating ticket', error);
