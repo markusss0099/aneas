@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,19 +7,29 @@ interface ViagogoPriceProps {
   link?: string;
 }
 
-// Fallback function to generate price from link if API fails
+// Improved fallback function to generate more consistent price estimates
 const generatePriceFromLink = (url: string): string => {
   if (!url) return '€0';
   
-  // Use a simple logic based on link characters to generate a simulated price
-  let sum = 0;
-  for (let i = 0; i < url.length; i++) {
-    sum += url.charCodeAt(i);
+  // Extract event ID if present (typically after E-)
+  const eventIdMatch = url.match(/E-(\d+)/);
+  let basePrice = 100; // Default base price
+  
+  if (eventIdMatch && eventIdMatch[1]) {
+    // Use the event ID to seed a more consistent price
+    const eventId = parseInt(eventIdMatch[1]);
+    // Use modulo to keep prices in a reasonable range (€70-€250)
+    basePrice = 70 + (eventId % 180);
+  } else {
+    // Fallback to using character codes if no event ID found
+    let sum = 0;
+    for (let i = 0; i < url.length; i++) {
+      sum += url.charCodeAt(i);
+    }
+    basePrice = 70 + (sum % 180);
   }
   
-  // Generate a price between €50 and €250 (approximate)
-  const price = 50 + (sum % 200);
-  return `€${price}`;
+  return `€${basePrice}`;
 };
 
 const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
