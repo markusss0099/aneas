@@ -31,6 +31,11 @@ const EditTicketDialog = ({
 }: EditTicketDialogProps) => {
   const isMobile = useIsMobile();
 
+  // Se non c'è un biglietto da modificare, non mostriamo nulla
+  if (!ticket) {
+    return null;
+  }
+
   if (isMobile) {
     return (
       <Drawer 
@@ -42,16 +47,14 @@ const EditTicketDialog = ({
         <DrawerContent className="px-4 pb-6 pt-2 max-h-[85vh]">
           <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
           <h3 className="font-semibold text-lg pt-2 pb-4">Modifica Biglietto</h3>
-          {ticket && (
-            <ScrollArea className="h-[calc(80vh-80px)] pr-4">
-              <TicketForm
-                initialData={ticket}
-                onSubmit={onSubmit}
-                onCancel={onCancel}
-                isLoading={isLoading}
-              />
-            </ScrollArea>
-          )}
+          <ScrollArea className="h-[calc(80vh-80px)] pr-4">
+            <TicketForm
+              initialData={ticket}
+              onSubmit={onSubmit}
+              onCancel={onCancel}
+              isLoading={isLoading}
+            />
+          </ScrollArea>
         </DrawerContent>
       </Drawer>
     );
@@ -68,14 +71,12 @@ const EditTicketDialog = ({
         <DialogHeader>
           <DialogTitle>Modifica Biglietto</DialogTitle>
         </DialogHeader>
-        {ticket && (
-          <TicketForm
-            initialData={ticket}
-            onSubmit={onSubmit}
-            onCancel={onCancel}
-            isLoading={isLoading}
-          />
-        )}
+        <TicketForm
+          initialData={ticket}
+          onSubmit={onSubmit}
+          onCancel={onCancel}
+          isLoading={isLoading}
+        />
       </DialogContent>
     </Dialog>
   );
