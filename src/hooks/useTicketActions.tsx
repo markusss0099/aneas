@@ -12,6 +12,7 @@ export const useTicketActions = () => {
   const [deletingTicketId, setDeletingTicketId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -115,6 +116,18 @@ export const useTicketActions = () => {
     deleteTicketMutation.mutate(id);
   }, [deleteTicketMutation]);
   
+  const updateTicketHandler = useCallback((ticket: Ticket) => {
+    if (editingTicket) {
+      handleUpdateTicket({ ...ticket, id: editingTicket.id });
+    }
+  }, [editingTicket, handleUpdateTicket]);
+  
+  const deleteTicketHandler = useCallback(() => {
+    if (deletingTicketId) {
+      handleDeleteTicket(deletingTicketId);
+    }
+  }, [deletingTicketId, handleDeleteTicket]);
+  
   return {
     isAddingTicket,
     setIsAddingTicket,
@@ -122,6 +135,7 @@ export const useTicketActions = () => {
     deletingTicketId,
     isEditDialogOpen,
     isDeleteDialogOpen,
+    isLoading,
     handleEdit,
     handleDelete,
     handleEditCancel,
@@ -132,6 +146,8 @@ export const useTicketActions = () => {
     handleAddTicket,
     handleUpdateTicket,
     handleDeleteTicket,
+    updateTicketHandler,
+    deleteTicketHandler,
     isProcessing: addTicketMutation.isPending || 
                   updateTicketMutation.isPending || 
                   deleteTicketMutation.isPending

@@ -46,9 +46,9 @@ export const addTicket = async (ticket: Omit<Ticket, 'id'>): Promise<Ticket> => 
       purchaseDate: new Date(data.purchase_date),
       eventDate: new Date(data.event_date),
       expectedPaymentDate: new Date(data.expected_payment_date),
-      ticketPrice: parseFloat(data.ticket_price),
-      additionalCosts: parseFloat(data.additional_costs),
-      expectedRevenue: parseFloat(data.expected_revenue),
+      ticketPrice: parseFloat(String(data.ticket_price)),
+      additionalCosts: parseFloat(String(data.additional_costs)),
+      expectedRevenue: parseFloat(String(data.expected_revenue)),
       notes: data.notes || undefined
     };
     

@@ -43,7 +43,7 @@ const PullingPage = () => {
       
       <ServiceStats 
         servicesCount={services.length}
-        totalRevenue={totalRevenue}
+        totalRevenue={Number(totalRevenue)}
         isLoadingRevenue={isLoadingRevenue}
       />
       

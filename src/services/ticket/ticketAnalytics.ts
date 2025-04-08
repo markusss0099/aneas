@@ -3,7 +3,7 @@ import { Ticket, FinancialSummary, CashflowByPeriod, Period } from '../../types'
 import { format, startOfWeek, startOfMonth, startOfQuarter, startOfYear, isSameWeek, isSameMonth, isSameQuarter, isSameYear } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { debugLog } from '@/lib/debugUtils';
-import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from '../serviceService';
+import { getServices, getTotalServiceRevenue, getServiceRevenueByPeriod } from '@/services/serviceService';
 import { getTickets } from './ticketStorage';
 import { calculateTicketTotalCost, calculateTicketTotalRevenue, calculateTicketProfit } from './ticketCalculations';
 
@@ -128,7 +128,7 @@ export const getCashflowByPeriod = async (period: Period): Promise<CashflowByPer
         };
       }
       
-      result[periodKey].serviceRevenue = revenue;
+      result[periodKey].serviceRevenue = Number(revenue);
     });
     
     return Object.values(result).sort((a, b) => a.period.localeCompare(b.period));

@@ -23,7 +23,6 @@ const TicketList = ({
 }: TicketListProps) => {
   const [search, setSearch] = useState('');
   const {
-    isLoading: localLoading,
     editingTicket,
     deletingTicketId,
     isEditDialogOpen,
@@ -33,11 +32,12 @@ const TicketList = ({
     handleEditCancel,
     handleDeleteCancel,
     updateTicketHandler,
-    deleteTicketHandler
+    deleteTicketHandler,
+    isProcessing
   } = useTicketActions();
 
   // Combined loading state
-  const isProcessing = isLoading || localLoading;
+  const isProcessingAll = isLoading || isProcessing;
 
   // Filter tickets based on search term
   const filteredTickets = tickets.filter(ticket => 
@@ -46,18 +46,19 @@ const TicketList = ({
 
   // Handle edit submission by calling the parent's update function
   const handleSubmitEdit = (data: Ticket) => {
-    updateTicketHandler(data);
-    // Call the parent's update function
     if (editingTicket) {
-      onUpdateTicket({ ...data, id: editingTicket.id });
+      const updatedTicket = { ...data, id: editingTicket.id };
+      updateTicketHandler(updatedTicket);
+      // Call the parent's update function
+      onUpdateTicket(updatedTicket);
     }
   };
 
   // Handle delete confirmation by calling the parent's delete function
   const confirmDelete = () => {
-    deleteTicketHandler();
-    // Call the parent's delete function
     if (deletingTicketId) {
+      deleteTicketHandler();
+      // Call the parent's delete function
       onDeleteTicket(deletingTicketId);
     }
   };
@@ -69,7 +70,7 @@ const TicketList = ({
       <TicketSearch 
         search={search} 
         setSearch={setSearch} 
-        isLoading={isProcessing} 
+        isLoading={isProcessingAll} 
       />
 
       <TicketTable 
@@ -77,24 +78,24 @@ const TicketList = ({
         filteredTickets={filteredTickets}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        isLoading={isProcessing}
+        isLoading={isProcessingAll}
       />
 
       <EditTicketDialog 
         isOpen={isEditDialogOpen}
-        setIsOpen={(open) => !isProcessing && !open && handleEditCancel()}
+        setIsOpen={(open) => !isProcessingAll && !open && handleEditCancel()}
         ticket={editingTicket}
         onSubmit={handleSubmitEdit}
         onCancel={handleEditCancel}
-        isLoading={isProcessing}
+        isLoading={isProcessingAll}
       />
 
       <DeleteTicketDialog 
         isOpen={isDeleteDialogOpen}
-        setIsOpen={(open) => !isProcessing && !open && handleDeleteCancel()}
+        setIsOpen={(open) => !isProcessingAll && !open && handleDeleteCancel()}
         onConfirm={confirmDelete}
         onCancel={handleDeleteCancel}
-        isLoading={isProcessing}
+        isLoading={isProcessingAll}
       />
     </>
   );
