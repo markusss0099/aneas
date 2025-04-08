@@ -14,7 +14,9 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     backgroundColor: '#ffffff',
     statusBarStyle: 'dark',
-    webViewSuspensionOnBackground: true
+    webViewSuspensionOnBackground: true,
+    limitsNavigationsToAppBoundDomains: true,
+    handleApplicationNotifications: false
   }
 };
 
