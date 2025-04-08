@@ -56,7 +56,7 @@ const TicketRow = ({ ticket, onEdit, onDelete, isLoading, isMobile = false }: Ti
           </span>
         </TableCell>
       )}
-      {!isMobile && (
+      {!isMobile && ticket.viagogoLink && (
         <TableCell>
           <ViagogoPrice link={ticket.viagogoLink} />
         </TableCell>
