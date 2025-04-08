@@ -18,15 +18,15 @@ const generatePriceFromLink = (url: string): string => {
   if (eventIdMatch && eventIdMatch[1]) {
     // Use the event ID to seed a more consistent price
     const eventId = parseInt(eventIdMatch[1]);
-    // Use modulo to keep prices in a reasonable range (€70-€250)
-    basePrice = 70 + (eventId % 180);
+    // Use modulo to keep prices in a reasonable range (€45-€225)
+    basePrice = 45 + (eventId % 180);
   } else {
     // Fallback to using character codes if no event ID found
     let sum = 0;
     for (let i = 0; i < url.length; i++) {
       sum += url.charCodeAt(i);
     }
-    basePrice = 70 + (sum % 180);
+    basePrice = 45 + (sum % 180);
   }
   
   return `€${basePrice}`;

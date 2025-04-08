@@ -68,6 +68,13 @@ serve(async (req) => {
       'div:contains("€")', // Any div with euro symbol
       'span:contains("each")', // Find by "each" text which often follows prices
       '.ticket-price', // Another common class
+      '.MuiBox-root:contains("€")', // Look for MUI Box containing euro
+      '.MuiTypography-root:contains("€")', // Look for MUI Typography containing euro
+      '[role="button"]:contains("€")', // Buttons with price
+      '[class*="price"]', // Classes containing 'price'
+      '[class*="Price"]', // Classes containing 'Price'
+      '[data-test="priceContainer"]', // Price container
+      '[data-test*="price"]', // Data attributes containing price
     ];
     
     // Try each selector
@@ -78,11 +85,11 @@ serve(async (req) => {
         console.log(`Found potential price text: ${text}`);
         
         // Extract price using regex - looking for patterns like €123,45 or €123.45
-        const priceMatch = text.match(/€\s?(\d+[,.]\d+|\d+)/);
-        if (priceMatch) {
-          // Convert to number, handling both comma and period as decimal separators
-          let priceStr = priceMatch[1].replace(',', '.');
-          const price = parseFloat(priceStr);
+        const priceMatches = text.match(/€\s?(\d+[,.]\d+|\d+)/g) || [];
+        for (const match of priceMatches) {
+          // Extract the number part
+          const numericPart = match.replace(/€\s?/, '').replace(',', '.');
+          const price = parseFloat(numericPart);
           if (!isNaN(price)) {
             console.log(`Extracted valid price: €${price}`);
             prices.push(price);
@@ -91,38 +98,71 @@ serve(async (req) => {
       });
     }
     
-    // Method 2: Look for elements with "each" and extract preceding price
-    $('*:contains("each")').each((i, el) => {
+    // Method 2: Special case for listings that show 'from €X'
+    $('*:contains("from €")').each((i, el) => {
       const text = $(el).text().trim();
-      console.log(`Found "each" text: ${text}`);
+      console.log(`Found "from €" text: ${text}`);
       
-      // Try to find price before "each"
-      const eachPriceMatch = text.match(/€\s?(\d+[,.]\d+|\d+).*each/i);
-      if (eachPriceMatch) {
-        let priceStr = eachPriceMatch[1].replace(',', '.');
+      const fromPriceMatch = text.match(/from €\s?(\d+[,.]\d+|\d+)/i);
+      if (fromPriceMatch) {
+        const priceStr = fromPriceMatch[1].replace(',', '.');
         const price = parseFloat(priceStr);
         if (!isNaN(price)) {
-          console.log(`Extracted "each" price: €${price}`);
+          console.log(`Extracted "from" price: €${price}`);
           prices.push(price);
         }
       }
     });
     
-    // Method 3: Try to find structured data in script tags
+    // Method 3: Parse any detailed ticket information
+    $('.ticket-info').each((i, el) => {
+      const ticketInfo = $(el).text();
+      const priceMatches = ticketInfo.match(/€\s?(\d+[,.]\d+|\d+)/g) || [];
+      for (const match of priceMatches) {
+        const numericPart = match.replace(/€\s?/, '').replace(',', '.');
+        const price = parseFloat(numericPart);
+        if (!isNaN(price)) {
+          console.log(`Extracted ticket info price: €${price}`);
+          prices.push(price);
+        }
+      }
+    });
+    
+    // Method 4: Look for structured data in script tags
     $('script[type="application/ld+json"]').each((i, el) => {
       try {
         const jsonData = JSON.parse($(el).html() || '{}');
-        if (jsonData.offers && jsonData.offers.price) {
-          const price = parseFloat(jsonData.offers.price);
-          if (!isNaN(price)) {
-            console.log(`Found structured data price: €${price}`);
-            prices.push(price);
+        console.log("Found JSON-LD data:", jsonData);
+        
+        // Look for offers in the structured data
+        if (jsonData.offers) {
+          const offers = Array.isArray(jsonData.offers) ? jsonData.offers : [jsonData.offers];
+          for (const offer of offers) {
+            if (offer.price) {
+              const price = parseFloat(offer.price);
+              if (!isNaN(price)) {
+                console.log(`Found structured data price: €${price}`);
+                prices.push(price);
+              }
+            }
           }
         }
       } catch (e) {
         console.log('Error parsing JSON-LD:', e);
       }
     });
+    
+    // Method 5: Iterate through all elements containing a € sign
+    const bodyText = $('body').text();
+    const allPrices = bodyText.match(/€\s?(\d+[,.]\d+|\d+)/g) || [];
+    for (const match of allPrices) {
+      const numericPart = match.replace(/€\s?/, '').replace(',', '.');
+      const price = parseFloat(numericPart);
+      if (!isNaN(price)) {
+        console.log(`Found price in body text: €${price}`);
+        prices.push(price);
+      }
+    }
     
     console.log(`All extracted prices: ${JSON.stringify(prices)}`);
     
