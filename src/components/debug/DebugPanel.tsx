@@ -4,7 +4,7 @@ import { isDebugEnabled, toggleDebug, debugLog } from '@/lib/debugUtils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BugPlay, X, RefreshCw } from 'lucide-react';
-import { getTickets } from '@/services/ticketService';
+import { getTickets } from '@/services/ticket';
 import { Ticket } from '@/types';
 
 const DebugPanel: React.FC = () => {

@@ -16,7 +16,7 @@ import {
   Legend
 } from 'recharts';
 import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp } from 'lucide-react';
-import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticketService';
+import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticket';
 import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import DebugPanel from '@/components/debug/DebugPanel';

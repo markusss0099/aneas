@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -26,7 +25,7 @@ import {
   calculateTicketTotalCost,
   calculateTicketTotalRevenue,
   calculateTicketProfit
-} from '@/services/ticketService';
+} from '@/services/ticket';
 import { formatCurrency, formatDate, formatQuantity } from '@/lib/utils';
 import { Period } from '@/types';
 import ServiceSummarySection from '@/components/summary/ServiceSummarySection';

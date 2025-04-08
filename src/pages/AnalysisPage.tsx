@@ -16,7 +16,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { getCashflowByPeriod, getFinancialSummary } from '@/services/ticketService';
+import { getCashflowByPeriod, getFinancialSummary } from '@/services/ticket';
 import { CashflowByPeriod, Period } from '@/types';
 import ServiceAnalysis from '@/components/analysis/ServiceAnalysis';
 
