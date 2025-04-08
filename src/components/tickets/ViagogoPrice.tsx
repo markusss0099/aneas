@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ViagogoPriceProps {
@@ -7,64 +7,34 @@ interface ViagogoPriceProps {
 }
 
 const ViagogoPrice: React.FC<ViagogoPriceProps> = ({ link }) => {
-  const [price, setPrice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!link) {
-      setPrice(null);
-      setError(null);
-      return;
+  // Funzione per simulare il prezzo basato sull'URL
+  const simulatePrice = (url?: string): string => {
+    if (!url) return '-';
+    
+    // Crea un prezzo simulato tra 100€ e 250€ basato sull'hash dell'URL
+    // Questo garantisce che lo stesso URL produca sempre lo stesso prezzo
+    let hash = 0;
+    for (let i = 0; i < url.length; i++) {
+      hash = ((hash << 5) - hash) + url.charCodeAt(i);
+      hash = hash & hash; // Converti in integer a 32 bit
     }
-
-    const fetchPrice = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        // Nota: in un'implementazione reale, dovresti utilizzare una API server-side
-        // per fare lo scraping del prezzo da Viagogo, poiché le richieste CORS
-        // probabilmente falliranno nel client. Qui simuliamo l'estrazione del prezzo.
-        
-        // Simulazione del recupero del prezzo (per una demo)
-        // In un'implementazione reale, questa logica dovrebbe essere sul server
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Simula un prezzo estratto da Viagogo
-        // In produzione, dovresti estrarre il prezzo reale dalla pagina
-        const extractedPrice = '€157';
-        
-        setPrice(extractedPrice);
-      } catch (err) {
-        console.error('Error fetching Viagogo price:', err);
-        setError('Impossibile recuperare il prezzo');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPrice();
-  }, [link]);
+    
+    // Usa il valore assoluto dell'hash per generare un prezzo tra 100 e 250
+    const price = 100 + Math.abs(hash % 150);
+    
+    return `€${price}`;
+  };
 
   if (!link) return <span className="text-gray-400">-</span>;
   
-  if (loading) {
-    return (
-      <div className="flex items-center">
-        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        <span className="text-muted-foreground">Caricamento...</span>
-      </div>
-    );
-  }
-  
-  if (error) {
-    return <span className="text-red-500">{error}</span>;
-  }
+  // Mostra il prezzo simulato (questo non cambierà a meno che il link non cambi)
+  const simulatedPrice = simulatePrice(link);
   
   return (
     <div>
-      <span className="font-medium text-green-600">{price}</span>
+      <span className="font-medium text-green-600">{simulatedPrice}</span>
       <a 
         href={link} 
         target="_blank" 
