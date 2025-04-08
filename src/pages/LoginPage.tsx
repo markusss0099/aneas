@@ -7,8 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, LogIn } from 'lucide-react';
 import { login, isAuthenticated } from '@/services/authService';
-import { useToast } from '@/hooks/use-toast';
-import { toast } from '@/hooks/use-toast'; // Update import here
+import { useToast, toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const LoginPage = () => {
@@ -67,7 +66,8 @@ const LoginPage = () => {
     
     try {
       await login(username, password);
-      toast("Login effettuato", {
+      toast({
+        title: "Login effettuato",
         description: `Benvenuto! I tuoi dati saranno sincronizzati in tempo reale su tutti i dispositivi.`,
       });
       navigate('/');
