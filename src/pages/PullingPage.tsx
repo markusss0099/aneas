@@ -122,9 +122,9 @@ const PullingPage = () => {
   
   // Controlla se qualsiasi operazione è in corso
   const isProcessing = isLoading || isLoadingRevenue || 
-                       addServiceMutation.isPending || 
-                       updateServiceMutation.isPending || 
-                       deleteServiceMutation.isPending;
+                      addServiceMutation.isPending || 
+                      updateServiceMutation.isPending || 
+                      deleteServiceMutation.isPending;
   
   return (
     <div className="animate-in space-y-6">
