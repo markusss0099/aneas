@@ -79,7 +79,7 @@ const UserMenu = () => {
   if (!user) return null;
   
   return (
-    <div className="flex items-center gap-2 mt-auto mb-4 px-4">
+    <div className="flex flex-col gap-2 mt-auto mb-4 px-4 py-2 bg-secondary/30 rounded-md">
       <div className="flex items-center gap-2 p-2 rounded-md bg-secondary">
         <User size={18} />
         <span className="text-sm font-medium">{user.username}</span>
@@ -94,8 +94,14 @@ const UserMenu = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-        <LogOut size={18} />
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={handleLogout} 
+        className="w-full flex items-center justify-center gap-2"
+      >
+        <LogOut size={16} />
+        <span>Logout</span>
       </Button>
     </div>
   );
