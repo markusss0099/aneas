@@ -7,15 +7,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, LogIn } from 'lucide-react';
 import { login, isAuthenticated } from '@/services/authService';
-import { useToast, toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const { toast: toastUI } = useToast();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -56,13 +58,10 @@ const LoginPage = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(null);
     
     if (!username || !password) {
-      toastUI({
-        title: "Errore",
-        description: "Inserisci email e password",
-        variant: "destructive",
-      });
+      setLoginError("Inserisci email e password");
       return;
     }
     
@@ -77,11 +76,7 @@ const LoginPage = () => {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      toastUI({
-        title: "Errore di login",
-        description: error instanceof Error ? error.message : "Si è verificato un errore durante il login",
-        variant: "destructive",
-      });
+      setLoginError(error instanceof Error ? error.message : "Si è verificato un errore durante il login");
     } finally {
       setIsLoading(false);
     }
@@ -106,6 +101,12 @@ const LoginPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {loginError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertTitle>Errore</AlertTitle>
+                <AlertDescription>{loginError}</AlertDescription>
+              </Alert>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Email</Label>

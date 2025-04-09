@@ -56,31 +56,45 @@ export const getCurrentUser = async (): Promise<User | null> => {
 // Login con email e password
 export const login = async (username: string, password: string): Promise<User> => {
   try {
-    // Proviamo prima a effettuare il login
+    // Effettua il login
     const { data, error } = await supabase.auth.signInWithPassword({
       email: username,
       password: password,
     });
     
     if (error) {
-      // Se l'utente non esiste, proviamo a registrarlo
+      // Se l'utente non esiste o la password è errata
       if (error.message.includes('Invalid login credentials')) {
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: username,
-          password: password,
-        });
+        // Verifica se l'utente esiste per dare un messaggio più preciso
+        const { data: userExists } = await supabase.auth.admin
+          .getUserByEmail(username)
+          .catch(() => ({ data: null }));
         
-        if (signUpError) {
-          throw new Error(signUpError.message);
-        }
-        
-        // Se l'utente è stato creato correttamente
-        if (signUpData.user) {
-          debugLog('Nuovo utente registrato', { email: username, id: signUpData.user.id });
-          return {
-            id: signUpData.user.id,
-            username: username,
-          };
+        if (userExists) {
+          throw new Error('Email o Password errata');
+        } else {
+          // Se è un nuovo utente, procediamo con la registrazione
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: username,
+            password: password,
+          });
+          
+          if (signUpError) {
+            // Se la registrazione fallisce perché l'email esiste già
+            if (signUpError.message.includes('already registered')) {
+              throw new Error('Email o Password errata');
+            }
+            throw new Error(signUpError.message);
+          }
+          
+          // Se l'utente è stato creato correttamente
+          if (signUpData.user) {
+            debugLog('Nuovo utente registrato', { email: username, id: signUpData.user.id });
+            return {
+              id: signUpData.user.id,
+              username: username,
+            };
+          }
         }
       }
       
