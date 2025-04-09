@@ -65,26 +65,35 @@ export const login = async (username: string, password: string): Promise<User> =
     if (error) {
       // Se l'utente non esiste o la password è errata
       if (error.message.includes('Invalid login credentials')) {
-        // Verifica se l'utente esiste per dare un messaggio più preciso
-        const { data: userExists } = await supabase.auth.admin
-          .getUserByEmail(username)
-          .catch(() => ({ data: null }));
+        // Proviamo prima a verificare se l'email esiste già provando a fare una registrazione
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: username,
+          password: "temporaryPassword123", // Password temporanea solo per verificare
+          options: { 
+            emailRedirectTo: window.location.origin 
+          }
+        });
         
-        if (userExists) {
-          throw new Error('Email o Password errata');
+        if (signUpError) {
+          // Se la registrazione fallisce perché l'email esiste già
+          if (signUpError.message.includes('already registered')) {
+            // L'utente esiste ma la password è errata
+            throw new Error('Email o Password errata');
+          }
+          throw new Error(signUpError.message);
         } else {
-          // Se è un nuovo utente, procediamo con la registrazione
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          // Se arriviamo qui, significa che l'email non esisteva e abbiamo registrato un nuovo utente
+          // Eliminiamo questa registrazione temporanea e procediamo con la registrazione reale
+          await supabase.auth.signOut();
+          
+          // Registriamo l'utente con la password reale
+          const { data: signUpData, error: realSignUpError } = await supabase.auth.signUp({
             email: username,
             password: password,
           });
           
-          if (signUpError) {
-            // Se la registrazione fallisce perché l'email esiste già
-            if (signUpError.message.includes('already registered')) {
-              throw new Error('Email o Password errata');
-            }
-            throw new Error(signUpError.message);
+          if (realSignUpError) {
+            throw new Error(realSignUpError.message);
           }
           
           // Se l'utente è stato creato correttamente
