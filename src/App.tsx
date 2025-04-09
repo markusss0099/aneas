@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false, // Disable automatic refetching when window is focused
       retry: 1, // Limit retries for failed queries
       staleTime: 1000 * 60 * 5, // 5 minutes - data is considered fresh for this duration
-      cacheTime: 1000 * 60 * 30, // 30 minutes - how long to keep unused data in cache
+      gcTime: 1000 * 60 * 30, // 30 minutes - how long to keep unused data in cache
     },
   },
 });
