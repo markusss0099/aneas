@@ -1,38 +1,49 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { 
   getFinancialSummary, 
   getTickets, 
   getCashflowByPeriod 
 } from '@/services/ticket';
-import { Period, Ticket, FinancialSummary, CashflowByPeriod } from '@/types';
+import { Period } from '@/types';
 
 export const useSummaryData = (period: Period) => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [summary, setSummary] = useState<FinancialSummary | null>(null);
-  const [cashflowData, setCashflowData] = useState<CashflowByPeriod[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Use React Query for better caching and performance
+  const ticketsQuery = useQuery({
+    queryKey: ['tickets'],
+    queryFn: getTickets,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const ticketsData = await getTickets();
-        const summaryData = await getFinancialSummary();
-        const cashflow = await getCashflowByPeriod(period);
-        
-        setTickets(ticketsData);
-        setSummary(summaryData);
-        setCashflowData(cashflow);
-      } catch (error) {
-        console.error("Error fetching summary data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [period]);
+  const summaryQuery = useQuery({
+    queryKey: ['financialSummary'],
+    queryFn: getFinancialSummary,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  return { tickets, summary, cashflowData, isLoading };
+  const cashflowQuery = useQuery({
+    queryKey: ['cashflow', period],
+    queryFn: () => getCashflowByPeriod(period),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Derived loading state
+  const isLoading = ticketsQuery.isLoading || 
+                    summaryQuery.isLoading || 
+                    cashflowQuery.isLoading;
+
+  // Return structured data
+  return { 
+    tickets: ticketsQuery.data || [],
+    summary: summaryQuery.data,
+    cashflowData: cashflowQuery.data || [],
+    isLoading,
+    error: ticketsQuery.error || summaryQuery.error || cashflowQuery.error,
+    refetch: () => {
+      ticketsQuery.refetch();
+      summaryQuery.refetch();
+      cashflowQuery.refetch();
+    }
+  };
 };

@@ -1,55 +1,35 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend
-} from 'recharts';
-import { ArrowUpRight, ArrowDownRight, Ticket, BarChart3, CreditCard, PlusCircle, ArrowUp, Loader2, AlertCircle } from 'lucide-react';
-import { getFinancialSummary, getCashflowByPeriod } from '@/services/ticket';
-import { formatCurrency } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-import DebugPanel from '@/components/debug/DebugPanel';
+import { Loader2, PlusCircle, ArrowUp } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { isDebugEnabled } from '@/lib/debugUtils';
+import DebugPanel from '@/components/debug/DebugPanel';
 import ServiceSummary from '@/components/dashboard/ServiceSummary';
-import { FinancialSummary, CashflowByPeriod } from '@/types';
+import DashboardSummaryCards from '@/components/dashboard/DashboardSummaryCards';
+import CashflowChart from '@/components/dashboard/CashflowChart';
+import ProfitChart from '@/components/dashboard/ProfitChart';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [summary, setSummary] = useState<FinancialSummary | null>(null);
-  const [monthlyCashflow, setMonthlyCashflow] = useState<CashflowByPeriod[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const debugMode = isDebugEnabled();
+  const queryClient = useQueryClient();
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const summaryData = await getFinancialSummary();
-        const cashflowData = await getCashflowByPeriod('month');
-        setSummary(summaryData);
-        setMonthlyCashflow(cashflowData);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
+  // Use our custom hook for data fetching with React Query
+  const { summary, cashflow } = useDashboardData();
+  
+  // Combined loading state
+  const isLoading = summary.isLoading || cashflow.isLoading;
+  
+  // Handle refresh explicitly if needed
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    queryClient.invalidateQueries({ queryKey: ['cashflowMonthly'] });
+  };
 
-  if (isLoading || !summary) {
+  if (isLoading || !summary.data) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -58,63 +38,6 @@ const Dashboard = () => {
     );
   }
   
-  const summaryCards = [
-    {
-      title: 'Totale Biglietti',
-      value: summary.totalTickets,
-      icon: <Ticket className="h-4 w-4" />,
-      description: 'Biglietti registrati',
-    },
-    {
-      title: 'Investimento',
-      value: formatCurrency(summary.totalInvested),
-      icon: <CreditCard className="h-4 w-4" />,
-      description: 'Totale speso',
-    },
-    {
-      title: 'Ricavi Attesi',
-      value: formatCurrency(summary.totalRevenue),
-      description: 'Entrate previste',
-      icon: <BarChart3 className="h-4 w-4" />,
-    },
-    {
-      title: 'Profitto',
-      value: formatCurrency(summary.totalProfit),
-      description: `Margine: ${summary.profitMargin.toFixed(2)}%`,
-      icon: summary.totalProfit >= 0 
-        ? <ArrowUpRight className="h-4 w-4 text-success" /> 
-        : <ArrowDownRight className="h-4 w-4 text-destructive" />,
-      status: summary.totalProfit >= 0 ? 'positive' : 'negative',
-    },
-    {
-      title: 'Biglietti Non Venduti',
-      value: summary.zeroRevenueTickets,
-      icon: <AlertCircle className="h-4 w-4 text-amber-500" />,
-      description: `Investimento in sospeso: ${formatCurrency(summary.zeroRevenueInvestment)}`,
-      status: 'warning',
-    },
-    {
-      title: 'Profitto Effettivo',
-      value: formatCurrency(summary.actualProfit),
-      icon: <ArrowUpRight className="h-4 w-4 text-success" />,
-      description: 'Solo da biglietti venduti',
-      status: 'positive',
-    },
-    {
-      title: 'Servizi Pulling',
-      value: summary.totalServices,
-      icon: <ArrowUp className="h-4 w-4" />,
-      description: 'Servizi registrati',
-    },
-    {
-      title: 'Ricavi Pulling',
-      value: formatCurrency(summary.totalServiceRevenue),
-      icon: <ArrowUpRight className="h-4 w-4 text-success" />,
-      description: 'Ricavi dai servizi',
-      status: 'positive',
-    },
-  ];
-
   return (
     <div className="animate-in space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -139,126 +62,20 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {summaryCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {card.title}
-              </CardTitle>
-              <div className={cn(
-                "rounded-full p-1",
-                card.status === 'positive' && "text-success",
-                card.status === 'negative' && "text-destructive", 
-                card.status === 'warning' && "text-amber-500"
-              )}>
-                {card.icon}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className={cn(
-                "text-2xl font-bold",
-                card.status === 'positive' && "text-success",
-                card.status === 'negative' && "text-destructive",
-                card.status === 'warning' && "text-amber-500"
-              )}>
-                {card.value}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {card.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Summary Cards */}
+      <DashboardSummaryCards summary={summary.data} />
 
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Cashflow Mensile</CardTitle>
-            <CardDescription>
-              Andamento mensile di investimenti e ricavi
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={monthlyCashflow}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="period" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value) => [`€${value}`, '']}
-                  labelFormatter={(value) => `Periodo: ${value}`}
-                />
-                <Legend />
-                <Bar dataKey="invested" fill="#1e3a8a" name="Investimento" />
-                <Bar dataKey="revenue" fill="#06b6d4" name="Ricavi Biglietti" />
-                <Bar dataKey="serviceRevenue" fill="#10b981" name="Ricavi Servizi" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
+        <CashflowChart data={cashflow.data || []} />
         <ServiceSummary />
       </div>
       
-      <Card className="col-span-1">
-        <CardHeader>
-          <CardTitle>Profitto nel Tempo</CardTitle>
-          <CardDescription>
-            Andamento del profitto mensile
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={monthlyCashflow}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorServiceRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="period" />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => [`€${value}`, '']}
-                labelFormatter={(value) => `Periodo: ${value}`}
-              />
-              <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="profit" 
-                stroke="#06b6d4" 
-                fillOpacity={1} 
-                fill="url(#colorProfit)" 
-                name="Profitto Biglietti"
-              />
-              <Area 
-                type="monotone" 
-                dataKey="serviceRevenue" 
-                stroke="#10b981" 
-                fillOpacity={1} 
-                fill="url(#colorServiceRevenue)" 
-                name="Ricavi Servizi"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      {/* Profit Chart */}
+      <ProfitChart data={cashflow.data || []} />
       
-      {/* Add the DebugPanel component */}
-      <DebugPanel />
+      {/* Debug Panel */}
+      {debugMode && <DebugPanel />}
     </div>
   );
 };

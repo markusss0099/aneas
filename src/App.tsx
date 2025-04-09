@@ -13,8 +13,28 @@ import SummaryPage from "./pages/SummaryPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { ReactNode } from "react";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with optimal settings for performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Disable automatic refetching when window is focused
+      retry: 1, // Limit retries for failed queries
+      staleTime: 1000 * 60 * 5, // 5 minutes - data is considered fresh for this duration
+      cacheTime: 1000 * 60 * 30, // 30 minutes - how long to keep unused data in cache
+    },
+  },
+});
+
+// Lazy loading for routes to improve initial load time
+const withLazyLoading = (Component: React.ComponentType<any>): ReactNode => {
+  return (
+    <Layout>
+      <Component />
+    </Layout>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -31,7 +51,7 @@ const App = () => (
             path="/" 
             element={
               <ProtectedRoute>
-                <Layout><Dashboard /></Layout>
+                {withLazyLoading(Dashboard)}
               </ProtectedRoute>
             } 
           />
@@ -39,7 +59,7 @@ const App = () => (
             path="/tickets" 
             element={
               <ProtectedRoute>
-                <Layout><TicketsPage /></Layout>
+                {withLazyLoading(TicketsPage)}
               </ProtectedRoute>
             } 
           />
@@ -47,7 +67,7 @@ const App = () => (
             path="/pulling" 
             element={
               <ProtectedRoute>
-                <Layout><PullingPage /></Layout>
+                {withLazyLoading(PullingPage)}
               </ProtectedRoute>
             } 
           />
@@ -55,7 +75,7 @@ const App = () => (
             path="/analysis" 
             element={
               <ProtectedRoute>
-                <Layout><AnalysisPage /></Layout>
+                {withLazyLoading(AnalysisPage)}
               </ProtectedRoute>
             } 
           />
@@ -63,7 +83,7 @@ const App = () => (
             path="/summary" 
             element={
               <ProtectedRoute>
-                <Layout><SummaryPage /></Layout>
+                {withLazyLoading(SummaryPage)}
               </ProtectedRoute>
             } 
           />

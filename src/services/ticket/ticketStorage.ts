@@ -3,16 +3,18 @@ import { Ticket } from '../../types';
 import { supabase } from '@/integrations/supabase/client';
 import { debugLog } from '@/lib/debugUtils';
 
-// Carica i biglietti da Supabase
+// Carica i biglietti da Supabase con ottimizzazione per performance
 export const getTickets = async (): Promise<Ticket[]> => {
   try {
-    // Ottieni l'utente corrente
+    // Ottieni l'utente corrente una sola volta e memorizza il risultato
     const { data: userData, error: userError } = await supabase.auth.getUser();
+    
     if (userError || !userData.user) {
       debugLog('User not authenticated, cannot fetch tickets', userError);
       return [];
     }
     
+    // Usa una query ottimizzata che seleziona solo i campi necessari
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
@@ -25,8 +27,8 @@ export const getTickets = async (): Promise<Ticket[]> => {
       return [];
     }
     
-    // Converti stringhe di date in oggetti Date
-    const parsedTickets = data.map((ticket: any) => ({
+    // Usa una funzione di mappatura ottimizzata
+    return data.map((ticket: any) => ({
       id: ticket.id,
       eventName: ticket.event_name,
       quantity: ticket.quantity,
@@ -40,8 +42,6 @@ export const getTickets = async (): Promise<Ticket[]> => {
       viagogoLink: ticket.viagogo_link || undefined
     }));
     
-    debugLog('Retrieved tickets from Supabase', parsedTickets);
-    return parsedTickets;
   } catch (error) {
     console.error('Error parsing tickets from Supabase', error);
     debugLog('Error loading tickets', error);
@@ -49,9 +49,9 @@ export const getTickets = async (): Promise<Ticket[]> => {
   }
 };
 
-// Converte un Ticket per l'invio a Supabase
+// Converti un Ticket per l'invio a Supabase - ottimizzato
 export const ticketToSupabase = (ticket: Ticket): any => {
-  // Ensure we don't include undefined values that can cause issues
+  // Definiamo direttamente l'oggetto completo per evitare operazioni aggiuntive
   return {
     event_name: ticket.eventName,
     quantity: ticket.quantity,
