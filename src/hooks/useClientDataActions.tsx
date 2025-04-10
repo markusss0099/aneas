@@ -47,18 +47,39 @@ export const useClientDataActions = () => {
     mutationFn: (filename: string) => downloadClientDataFile(filename),
     onSuccess: (url, filename) => {
       if (url) {
-        // Implementazione del download più affidabile
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename.substring(filename.indexOf('_') + 1); // Rimuove il timestamp dal nome del file
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: 'Download avviato',
-          description: 'Il download del file è stato avviato.',
-        });
+        // Force download using Blob and createObjectURL approach
+        fetch(url)
+          .then(response => response.blob())
+          .then(blob => {
+            // Create a Blob URL from the blob
+            const blobUrl = window.URL.createObjectURL(blob);
+            
+            // Create download link and trigger click
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.setAttribute('download', filename.substring(filename.indexOf('_') + 1));
+            document.body.appendChild(link);
+            link.click();
+            
+            // Clean up
+            setTimeout(() => {
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(blobUrl);
+            }, 100);
+            
+            toast({
+              title: 'Download avviato',
+              description: 'Il download del file è stato avviato.',
+            });
+          })
+          .catch(error => {
+            console.error('Errore durante il fetch del file:', error);
+            toast({
+              title: 'Errore',
+              description: 'Si è verificato un errore durante il download del file.',
+              variant: 'destructive'
+            });
+          });
       } else {
         toast({
           title: 'Errore',

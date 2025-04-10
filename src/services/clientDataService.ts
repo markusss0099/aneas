@@ -90,9 +90,13 @@ export const downloadClientDataFile = async (filename: string): Promise<string |
       return null;
     }
 
+    // Create a download URL that expires in 5 minutes
     const { data, error } = await supabase.storage
       .from('client_data')
-      .createSignedUrl(`${user.id}/${filename}`, 120); // URL valid for 120 seconds (2 minutes)
+      .createSignedUrl(`${user.id}/${filename}`, 300, {
+        download: true, // Force the Content-Disposition header
+        transform: {}, // No transformations
+      });
     
     if (error) {
       console.error('Errore nella creazione del link di download:', error);
