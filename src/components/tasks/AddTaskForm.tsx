@@ -18,8 +18,7 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, onCancel }) => {
     e.preventDefault();
     if (title.trim()) {
       onAddTask(title.trim(), description.trim() || undefined);
-      setTitle('');
-      setDescription('');
+      // Don't clear the form here - it will be cleared by the parent component after successful submission
     }
   };
 
