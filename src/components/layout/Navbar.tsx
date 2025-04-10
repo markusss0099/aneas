@@ -5,7 +5,8 @@ import {
   Ticket, 
   BarChart3, 
   List, 
-  ArrowUp
+  ArrowUp,
+  CheckSquare
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileNav from './MobileNav';
@@ -23,6 +24,7 @@ const Navbar = () => {
     { to: "/pulling", icon: <ArrowUp size={20} />, label: "Pulling" },
     { to: "/analysis", icon: <BarChart3 size={20} />, label: "Analisi" },
     { to: "/summary", icon: <List size={20} />, label: "Sommario" },
+    { to: "/tasks", icon: <CheckSquare size={20} />, label: "Attività" },
   ];
 
   if (isMobile) {

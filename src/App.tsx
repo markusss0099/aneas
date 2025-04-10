@@ -10,6 +10,7 @@ import TicketsPage from "./pages/TicketsPage";
 import PullingPage from "./pages/PullingPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import SummaryPage from "./pages/SummaryPage";
+import TasksPage from "./pages/TasksPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -84,6 +85,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 {withLazyLoading(SummaryPage)}
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tasks" 
+            element={
+              <ProtectedRoute>
+                {withLazyLoading(TasksPage)}
               </ProtectedRoute>
             } 
           />
