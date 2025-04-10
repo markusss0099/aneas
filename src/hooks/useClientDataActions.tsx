@@ -47,7 +47,18 @@ export const useClientDataActions = () => {
     mutationFn: (filename: string) => downloadClientDataFile(filename),
     onSuccess: (url, filename) => {
       if (url) {
-        window.open(url, '_blank');
+        // Implementazione del download più affidabile
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename.substring(filename.indexOf('_') + 1); // Rimuove il timestamp dal nome del file
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: 'Download avviato',
+          description: 'Il download del file è stato avviato.',
+        });
       } else {
         toast({
           title: 'Errore',
