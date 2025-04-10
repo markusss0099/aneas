@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import PullingPage from "./pages/PullingPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import SummaryPage from "./pages/SummaryPage";
 import TasksPage from "./pages/TasksPage";
+import ClientDataPage from "./pages/ClientDataPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -93,6 +93,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 {withLazyLoading(TasksPage)}
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/client-data" 
+            element={
+              <ProtectedRoute>
+                {withLazyLoading(ClientDataPage)}
               </ProtectedRoute>
             } 
           />
