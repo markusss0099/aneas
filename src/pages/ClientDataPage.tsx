@@ -1,14 +1,15 @@
 
-import React from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useEffect } from 'react';
 import ClientDataFileList from '@/components/client-data/ClientDataFileList';
 
 const ClientDataPage: React.FC = () => {
+  useEffect(() => {
+    // Set the document title directly instead of using react-helmet
+    document.title = 'Dati Clienti | Cashflow Manager';
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>Dati Clienti | Cashflow Manager</title>
-      </Helmet>
       <ClientDataFileList />
     </>
   );
