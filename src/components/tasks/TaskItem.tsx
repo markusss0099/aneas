@@ -40,11 +40,19 @@ const TaskItem: React.FC<TaskItemProps> = ({
     }
   };
   
-  const formattedDate = format(
+  const formattedCreationDate = format(
     new Date(task.created_at),
     "d MMMM yyyy, HH:mm",
     { locale: it }
   );
+  
+  const formattedCompletionDate = task.completed && task.completed_at
+    ? format(
+        new Date(task.completed_at),
+        "d MMMM yyyy, HH:mm",
+        { locale: it }
+      )
+    : null;
 
   if (isEditing) {
     return (
@@ -106,9 +114,12 @@ const TaskItem: React.FC<TaskItemProps> = ({
                   {task.description}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground/60 mt-2">
-                Creata il {formattedDate}
-              </p>
+              <div className="text-xs text-muted-foreground/60 mt-2">
+                <p>Creata il {formattedCreationDate}</p>
+                {formattedCompletionDate && (
+                  <p className="mt-1">Completata il {formattedCompletionDate}</p>
+                )}
+              </div>
             </div>
             <div className="flex gap-1 shrink-0">
               <Button 
