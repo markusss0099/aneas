@@ -34,12 +34,21 @@ export const getTasks = async (): Promise<Task[]> => {
 // Aggiungi una nuova attività
 export const addTask = async (title: string, description?: string): Promise<Task | null> => {
   try {
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('Nessun utente autenticato');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('tasks')
       .insert([
         { 
           title, 
-          description: description || null
+          description: description || null,
+          user_id: user.id
         }
       ])
       .select()
