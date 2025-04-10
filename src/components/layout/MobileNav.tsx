@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet';
 import UserMenu from '../auth/UserMenu';
 import NavItem from './NavItem';
-import { NavItemType } from '@/types/nav';
+import { NavItem as NavItemType } from '@/types/nav';
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface MobileNavProps {

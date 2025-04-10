@@ -2,7 +2,7 @@
 import React from 'react';
 import NavItem from './NavItem';
 import UserMenu from '../auth/UserMenu';
-import { NavItemType } from '@/types/nav';
+import { NavItem as NavItemType } from '@/types/nav';
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DesktopNavProps {
