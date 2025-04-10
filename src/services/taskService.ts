@@ -49,7 +49,9 @@ export const addTask = async (title: string, description?: string): Promise<Task
         { 
           title, 
           description: description || null,
-          user_id: user.id
+          user_id: user.id,
+          completed: false,
+          completed_at: null
         }
       ])
       .select()
@@ -71,6 +73,7 @@ export const addTask = async (title: string, description?: string): Promise<Task
 // Aggiorna lo stato di un'attività (completata o non completata)
 export const updateTaskStatus = async (id: string, completed: boolean): Promise<Task | null> => {
   try {
+    // The completed_at field will be automatically set by the database trigger
     const { data, error } = await supabase
       .from('tasks')
       .update({ completed, updated_at: new Date().toISOString() })
