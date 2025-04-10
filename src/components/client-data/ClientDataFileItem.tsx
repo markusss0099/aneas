@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Trash, File } from 'lucide-react';
+import { Download, Trash, File, FileText } from 'lucide-react';
 import { ClientDataFile } from '@/services/clientDataService';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -31,6 +31,7 @@ const ClientDataFileItem: React.FC<ClientDataFileItemProps> = ({
   isDownloading,
   isDeleting
 }) => {
+  // Helper function to format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('it-IT', {
@@ -42,16 +43,27 @@ const ClientDataFileItem: React.FC<ClientDataFileItemProps> = ({
     });
   };
 
+  // Display filename without timestamp
+  const displayFilename = file.filename.substring(file.filename.indexOf('_') + 1);
+  
+  // Determine the file icon based on extension
+  const getFileIcon = () => {
+    if (displayFilename.toLowerCase().endsWith('.csv')) {
+      return <FileText className="h-8 w-8 text-primary" />;
+    }
+    return <File className="h-8 w-8 text-primary" />;
+  };
+
   return (
-    <Card className="mb-3">
+    <Card className="mb-3 hover:shadow-md transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <File className="h-8 w-8 text-primary" />
+            {getFileIcon()}
             <div>
               <h3 className="font-medium">{file.title}</h3>
               <p className="text-sm text-muted-foreground">
-                Caricato il {formatDate(file.created_at)}
+                {displayFilename} • Caricato il {formatDate(file.created_at)}
               </p>
             </div>
           </div>

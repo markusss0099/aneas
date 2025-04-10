@@ -46,47 +46,57 @@ export const useClientDataActions = () => {
   const { mutate: downloadFile, isPending: isDownloading } = useMutation({
     mutationFn: (filename: string) => downloadClientDataFile(filename),
     onSuccess: (url, filename) => {
-      if (url) {
-        // Force download using Blob and createObjectURL approach
-        fetch(url)
-          .then(response => response.blob())
-          .then(blob => {
-            // Create a Blob URL from the blob
-            const blobUrl = window.URL.createObjectURL(blob);
-            
-            // Create download link and trigger click
-            const link = document.createElement('a');
-            link.href = blobUrl;
-            link.setAttribute('download', filename.substring(filename.indexOf('_') + 1));
-            document.body.appendChild(link);
-            link.click();
-            
-            // Clean up
-            setTimeout(() => {
-              document.body.removeChild(link);
-              window.URL.revokeObjectURL(blobUrl);
-            }, 100);
-            
-            toast({
-              title: 'Download avviato',
-              description: 'Il download del file è stato avviato.',
-            });
-          })
-          .catch(error => {
-            console.error('Errore durante il fetch del file:', error);
-            toast({
-              title: 'Errore',
-              description: 'Si è verificato un errore durante il download del file.',
-              variant: 'destructive'
-            });
-          });
-      } else {
+      if (!url) {
         toast({
           title: 'Errore',
           description: 'Impossibile scaricare il file.',
           variant: 'destructive'
         });
+        return;
       }
+      
+      // Force download using Blob to ensure it works across all devices
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // Create a Blob URL
+          const blobUrl = window.URL.createObjectURL(blob);
+          
+          // Setup proper filename without timestamp
+          const displayName = filename.substring(filename.indexOf('_') + 1);
+          
+          // Create and trigger download
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.setAttribute('download', displayName);
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          
+          // Clean up
+          setTimeout(() => {
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+          }, 200);
+          
+          toast({
+            title: 'Download avviato',
+            description: `Download di "${displayName}" avviato.`,
+          });
+        })
+        .catch(error => {
+          console.error('Errore durante il download del file:', error);
+          toast({
+            title: 'Errore',
+            description: 'Si è verificato un errore durante il download del file.',
+            variant: 'destructive'
+          });
+        });
     },
     onError: (error) => {
       console.error('Errore durante il download del file:', error);
@@ -102,12 +112,20 @@ export const useClientDataActions = () => {
   const { mutate: deleteFile, isPending: isDeleting } = useMutation({
     mutationFn: ({ id, filename }: { id: string, filename: string }) => 
       deleteClientDataFile(id, filename),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clientDataFiles'] });
-      toast({
-        title: 'File eliminato',
-        description: 'Il file dei dati cliente è stato eliminato con successo.',
-      });
+    onSuccess: (success) => {
+      if (success) {
+        queryClient.invalidateQueries({ queryKey: ['clientDataFiles'] });
+        toast({
+          title: 'File eliminato',
+          description: 'Il file dei dati cliente è stato eliminato con successo.',
+        });
+      } else {
+        toast({
+          title: 'Errore',
+          description: 'Non è stato possibile eliminare il file.',
+          variant: 'destructive'
+        });
+      }
     },
     onError: (error) => {
       console.error('Errore durante l\'eliminazione del file:', error);
