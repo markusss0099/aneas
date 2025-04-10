@@ -24,7 +24,7 @@ export const getClientDataFiles = async (): Promise<ClientDataFile[]> => {
       throw error;
     }
     
-    return data || [];
+    return data as ClientDataFile[] || [];
   } catch (error) {
     console.error('Errore in getClientDataFiles:', error);
     return [];
@@ -72,7 +72,7 @@ export const addClientDataFile = async (title: string, file: File): Promise<Clie
     }
     
     debugLog('File dati cliente creato', data);
-    return data;
+    return data as ClientDataFile;
   } catch (error) {
     console.error('Errore in addClientDataFile:', error);
     return null;

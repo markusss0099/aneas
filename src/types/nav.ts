@@ -17,6 +17,17 @@ export interface NavItem {
   isActive?: boolean;
 }
 
+// Alias for backward compatibility
+export type NavItemType = NavItem;
+
+// For components that use the old format with 'to' and 'label' properties
+export interface NavItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}
+
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',

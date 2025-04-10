@@ -41,8 +41,10 @@ const MobileNav = ({ isOpen, setIsOpen, navItems, closeMenu }: MobileNavProps) =
           <nav className="flex flex-col p-4 space-y-1 flex-1">
             {navItems.map((item) => (
               <NavItem 
-                key={item.to} 
-                {...item} 
+                key={item.href} 
+                to={item.href} 
+                label={item.title} 
+                icon={<item.icon size={20} />} 
                 onClick={closeMenu} 
               />
             ))}

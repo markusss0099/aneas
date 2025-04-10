@@ -18,7 +18,12 @@ const DesktopNav = ({ navItems }: DesktopNavProps) => {
       </div>
       <nav className="flex flex-col p-4 space-y-2 flex-1">
         {navItems.map((item) => (
-          <NavItem key={item.to} {...item} />
+          <NavItem 
+            key={item.href} 
+            to={item.href} 
+            label={item.title} 
+            icon={<item.icon size={20} />} 
+          />
         ))}
       </nav>
       <UserMenu />
